@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Era Career Pathfinder</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #050816;
+      --bg-alt: #0a1022;
+      --card: #0f172a;
+      --card-alt: #111827;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.1);
+      --accent-strong: rgba(56, 189, 248, 0.18);
+      --accent-2: #a855f7;
+      --accent-2-soft: rgba(168, 85, 247, 0.14);
+      --border-subtle: rgba(148, 163, 184, 0.3);
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --text-soft: #6b7280;
+      --danger: #f97373;
+      --warn: #facc15;
+      --success: #4ade80;
+      --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.8);
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-pill: 999px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1f2937 0, #020617 55%, #000 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+    }
+
+    .app-shell {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 1200px;
+      padding: 20px 16px 32px;
+      gap: 20px;
+    }
+
+    .app-header {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px 18px 16px;
+      border-radius: 20px;
+      background: linear-gradient(120deg, rgba(15,23,42,0.92), rgba(15,23,42,0.86)),
+                  radial-gradient(circle at top left, rgba(56,189,248,0.3), transparent 60%),
+                  radial-gradient(circle at top right, rgba(168,85,247,0.28), transparent 60%);
+      box-shadow: 0 12px 36px rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+    }
+
+    .app-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .title-block h1 {
+      margin: 0;
+      font-size: 1.4rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: #e5f2ff;
+    }
+
+    .title-block p {
+      margin: 4px 0 0;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .chip {
+      border-radius: var(--radius-pill);
+      padding: 4px 10px;
+      font-size: 0.78rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(15, 23, 42, 0.8);
+      color: var(--text-soft);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chip-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: radial-gradient(circle, var(--accent), transparent 65%);
+    }
+
+    .chip-strong {
+      border-color: rgba(56, 189, 248, 0.7);
+      background: linear-gradient(120deg, rgba(56,189,248,0.12), rgba(168,85,247,0.09));
+      color: #e0f2fe;
+    }
+
+    .app-main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.95fr);
+      gap: 18px;
+    }
+
+    @media (max-width: 880px) {
+      .app-main { grid-template-columns: minmax(0, 1fr); }
+    }
+
+    .panel {
+      border-radius: 18px;
+      border: 1px solid var(--border-subtle);
+      background: radial-gradient(circle at top left, rgba(15,23,42,0.96), rgba(15,23,42,0.96));
+      box-shadow: var(--shadow-soft);
+      padding: 16px 16px 18px;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .panel-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #e5f2ff;
+    }
+
+    .panel-subtitle {
+      margin: 0;
+      margin-top: 3px;
+      font-size: 0.8rem;
+      color: var(--text-soft);
+    }
+
+    .badge {
+      font-size: 0.72rem;
+      padding: 4px 8px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .badge-accent {
+      border-color: rgba(56, 189, 248, 0.85);
+      background: var(--accent-soft);
+      color: #e0f2fe;
+    }
+
+    form { display: flex; flex-direction: column; gap: 12px; margin-top: 6px; }
+    .field-group { display: flex; flex-direction: column; gap: 6px; }
+
+    .field-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--text-soft);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .field-label span.hint {
+      font-size: 0.72rem;
+      text-transform: none;
+      letter-spacing: 0;
+      color: var(--text-muted);
+    }
+
+    .input-row { display: flex; gap: 8px; align-items: center; }
+
+    .input, select {
+      width: 100%;
+      padding: 9px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: rgba(15, 23, 42, 0.98);
+      color: var(--text-main);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.14s ease;
+    }
+
+    .input::placeholder { color: rgba(148, 163, 184, 0.7); }
+    .input:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.3);
+    }
+
+    select {
+      appearance: none;
+      background-image: linear-gradient(45deg, transparent 50%, #9ca3af 50%),
+                        linear-gradient(135deg, #9ca3af 50%, transparent 50%);
+      background-position: calc(100% - 13px) 11px, calc(100% - 9px) 11px;
+      background-size: 5px 5px, 5px 5px;
+      background-repeat: no-repeat;
+    }
+
+    button { border: none; outline: none; cursor: pointer; }
+
+    .btn-primary {
+      padding: 9px 12px;
+      border-radius: 11px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: linear-gradient(130deg, #38bdf8, #a855f7);
+      color: #0b1020;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 12px 25px rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(15, 23, 42, 0.9);
+      transition: transform 0.08s ease;
+    }
+
+    .btn-primary:hover { transform: translateY(-1px); filter: brightness(1.05); }
+
+    .subtext { font-size: 0.8rem; color: var(--text-soft); margin-top: 4px; }
+
+    .note-box {
+      margin-top: 8px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px dashed rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.95);
+      font-size: 0.78rem;
+      color: var(--text-soft);
+    }
+
+    .pill-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+    .pill {
+      font-size: 0.76rem;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      color: var(--text-muted);
+      background: rgba(15, 23, 42, 0.95);
+    }
+
+    .score-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    @media (max-width: 600px) {
+      .score-row { grid-template-columns: minmax(0, 1fr); }
+    }
+
+    .score-card {
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.98);
+      padding: 10px 10px 9px;
+    }
+
+    .score-label {
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-soft);
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .score-value {
+      font-size: 1.05rem;
+      font-weight: 600;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      color: #e5f2ff;
+    }
+
+    .score-tag {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .score-tag-low { border-color: var(--success); color: #bbf7d0; background: rgba(22, 163, 74, 0.12); }
+    .score-tag-medium { border-color: var(--warn); color: #fef9c3; background: rgba(250, 204, 21, 0.1); }
+    .score-tag-high { border-color: var(--danger); color: #fecaca; background: rgba(248, 113, 113, 0.12); }
+
+    .bar-track {
+      margin-top: 6px;
+      height: 7px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(30, 64, 175, 0.8);
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #38bdf8, #a855f7);
+      transition: width 0.35s ease-out;
+    }
+
+    .mini-caption { margin-top: 4px; font-size: 0.74rem; color: var(--text-soft); }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.4fr);
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 880px) {
+      .results-grid { grid-template-columns: minmax(0, 1fr); }
+    }
+
+    .card {
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.98);
+      padding: 10px 11px 11px;
+    }
+
+    .card h3 {
+      margin: 0 0 4px;
+      font-size: 0.9rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #e5f2ff;
+    }
+
+    .card p { margin: 4px 0; font-size: 0.84rem; color: var(--text-muted); }
+    .card ul { margin: 6px 0 0; padding-left: 16px; font-size: 0.82rem; color: var(--text-muted); }
+    .card li + li { margin-top: 3px; }
+
+    .tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .tag {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      color: var(--text-muted);
+    }
+    .tag-accent { background: var(--accent-soft); border-color: rgba(56,189,248,0.9); color: #e0f2fe; }
+    .tag-soft { background: var(--accent-2-soft); border-color: rgba(168,85,247,0.85); color: #f3e8ff; }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    @media (max-width: 880px) { .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 600px) { .grid-3 { grid-template-columns: minmax(0, 1fr); } }
+
+    .mini-card {
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.96);
+      padding: 7px 8px;
+    }
+
+    .mini-title { font-size: 0.8rem; font-weight: 500; color: #e5f2ff; margin-bottom: 2px; }
+    .mini-tag-row { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 3px; }
+    .mini-tag {
+      font-size: 0.72rem;
+      padding: 1px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      color: var(--text-soft);
+      text-transform: uppercase;
+    }
+    .mini-tag-ai { background: rgba(56, 189, 248, 0.1); border-color: rgba(56, 189, 248, 0.9); color: #e0f2fe; }
+    .mini-text { font-size: 0.78rem; color: var(--text-muted); }
+
+    .two-col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 5px; }
+    @media (max-width: 600px) { .two-col { grid-template-columns: minmax(0, 1fr); } }
+
+    .list-title { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.09em; color: var(--text-soft); margin-bottom: 1px; }
+    .list { margin: 0; padding-left: 16px; font-size: 0.8rem; color: var(--text-muted); }
+    .list li + li { margin-top: 2px; }
+
+    .roadmap-section {
+      border-radius: 12px;
+      padding: 7px 8px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+    }
+    .roadmap-section + .roadmap-section { margin-top: 6px; }
+    .roadmap-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px; }
+    .roadmap-title { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.09em; color: #e5f2ff; }
+    .roadmap-timeline { font-size: 0.72rem; color: var(--text-soft); }
+    .roadmap-list { margin: 0; padding-left: 16px; font-size: 0.8rem; color: var(--text-muted); }
+
+    .stage-callout {
+      border-radius: 12px;
+      padding: 8px 9px;
+      background: linear-gradient(130deg, rgba(56,189,248,0.14), rgba(168,85,247,0.1));
+      border: 1px solid rgba(56, 189, 248, 0.55);
+      margin-top: 5px;
+    }
+    .stage-callout-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: #e0f2fe; margin-bottom: 3px; }
+    .stage-callout p { margin: 3px 0 0; font-size: 0.8rem; color: #d1d5db; }
+
+    .empty-state { padding: 20px 12px; text-align: left; color: var(--text-soft); font-size: 0.9rem; }
+    .empty-state h2 { margin: 0 0 4px; font-size: 0.98rem; color: #e5f2ff; }
+    .empty-state p { margin: 4px 0; font-size: 0.84rem; }
+    .empty-hints { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .error-text { margin-top: 4px; font-size: 0.78rem; color: #fecaca; }
+    .footer-note { margin-top: 6px; font-size: 0.75rem; color: var(--text-soft); text-align: right; }
+    .footer-note span { color: var(--text-muted); }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="app-header-row">
+        <div class="title-block">
+          <h1>AI Era Career Pathfinder</h1>
+          <p>Interactive tool for stress-testing career paths against automation and AI disruption.</p>
+        </div>
+        <div class="chip-row">
+          <div class="chip chip-strong"><span class="chip-dot"></span>Single file • No setup</div>
+          <div class="chip"><span class="chip-dot"></span>Works for 18, 35, 52+ year-olds</div>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Career Input</div>
+            <p class="panel-subtitle">Pick a path, tell us your stage, and get an AI-aware breakdown.</p>
+          </div>
+          <span class="badge badge-accent">Step 1</span>
+        </div>
+
+        <form id="career-form">
+          <div class="field-group">
+            <label for="career-input" class="field-label">
+              Career to analyze
+              <span class="hint">Examples: "tax accountant", "ER nurse", "high school teacher"</span>
+            </label>
+            <input id="career-input" class="input" type="text" autocomplete="off" placeholder="e.g., accountant, software engineer, nurse practitioner" />
+          </div>
+
+          <div class="field-group">
+            <label for="stage-select" class="field-label">Career stage</label>
+            <select id="stage-select">
+              <option value="early">Early career (0–5 years / ~18–25)</option>
+              <option value="mid">Mid-career (5–15 years / ~26–40)</option>
+              <option value="late">Experienced (15+ years / ~40+)</option>
+            </select>
+            <div class="subtext">This tunes the playbook: explore vs. pivot vs. future-proof and harvest.</div>
+          </div>
+
+          <div class="field-group">
+            <label for="domain-select" class="field-label">
+              Main field
+              <span class="hint">Auto-detection usually works. Override if needed.</span>
+            </label>
+            <select id="domain-select">
+              <option value="auto">Auto-detect from career title</option>
+              <option value="software_data">Software, Data & AI</option>
+              <option value="accounting_finance">Accounting & Finance</option>
+              <option value="law_compliance">Law, Legal Services & Compliance</option>
+              <option value="marketing_comms">Marketing, Comms & Content</option>
+              <option value="sales_customer">Sales, Customer Success & Support</option>
+              <option value="healthcare_clinical">Healthcare — Clinical Roles</option>
+              <option value="healthcare_admin">Healthcare — Admin & Ops</option>
+              <option value="education_training">Education & Training</option>
+              <option value="operations_logistics">Operations, Logistics & Supply Chain</option>
+              <option value="creative_design">Creative, Design & Media</option>
+              <option value="manufacturing_trades">Manufacturing & Skilled Trades</option>
+              <option value="public_social">Public Sector, Nonprofit & Social Impact</option>
+              <option value="general_knowledge">General Knowledge Worker</option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <div class="input-row">
+              <button type="submit" class="btn-primary">
+                <span class="icon">⚙️</span>
+                <span>Analyze career</span>
+              </button>
+              <span class="badge">No internet • Runs in browser</span>
+            </div>
+            <div id="form-error" class="error-text" style="display:none;"></div>
+          </div>
+
+          <div class="note-box">
+            This tool is a structured expert system, not a magic oracle. It surfaces how AI is reshaping work so you can choose your next moves deliberately.
+          </div>
+
+          <div class="pill-row">
+            <span class="pill">See: what gets automated vs. augmented</span>
+            <span class="pill">Spot: high-leverage hybrid roles</span>
+            <span class="pill">Plan: "learn now vs. later" roadmap</span>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel" id="results-panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">AI Impact & Strategy</div>
+            <p class="panel-subtitle">Breakdown of automation risk, skill shifts, hybrid roles, and learning priorities.</p>
+          </div>
+          <span class="badge">Step 2</span>
+        </div>
+
+        <div id="results">
+          <div class="empty-state">
+            <h2>Start by choosing a career.</h2>
+            <p>You'll get an AI-aware snapshot: what's getting automated, where humans stay central, and how to stay relevant over the next 5–15 years.</p>
+            <div class="empty-hints">
+              <span class="pill">Try "tax accountant"</span>
+              <span class="pill">Try "software engineer"</span>
+              <span class="pill">Try "nurse practitioner"</span>
+              <span class="pill">Try "high school teacher"</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-note">
+          <span>Hint:</span> Re-run with different careers to compare options side-by-side.
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    function escapeHtml(str) {
+      return String(str || "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
+    }
+
+    const STAGE_LABELS = {
+      early: "Early career / 18–25-ish",
+      mid: "Mid-career / 26–40-ish",
+      late: "Experienced / 40+ or 15+ years in"
+    };
+
+    // Comprehensive domain profiles - embedded expert system
+    const DOMAIN_PROFILES = {
+      software_data: {
+        id: "software_data",
+        label: "Software, Data & AI",
+        aiImpactLevel: "Transforming but opportunity-rich",
+        overallAutomationRisk: 0.45,
+        opportunityLevel: 0.9,
+        impactSummary: "Routine coding, boilerplate, and basic data work are being accelerated by AI coding assistants. But demand is growing for people who can design systems, reason about trade-offs, and ship trustworthy products.",
+        taskPatterns: [
+          { name: "Boilerplate coding & refactors", automation: "High", explanation: "AI can generate scaffolding, tests, and refactors quickly." },
+          { name: "Architecture & system design", automation: "Low", explanation: "Framing problems and balancing constraints remain deeply human." },
+          { name: "Data cleaning & feature work", automation: "Medium", explanation: "AI helps with mapping and extraction, but domain understanding stays critical." },
+          { name: "Stakeholder communication", automation: "Low", explanation: "Translating tech constraints into business decisions is hard to automate." }
+        ],
+        skillShift: {
+          moreValuable: ["System design and architecture thinking", "Prompting and integrating AI tools", "Data literacy: understanding distributions and bias", "Product thinking and UX sensitivity", "Security and responsible AI practices"],
+          lessValuable: ["Cranking out boilerplate code by hand", "Memorizing syntax instead of leveraging tooling"],
+          timeless: ["Debugging under uncertainty", "Clear communication", "Collaboration across disciplines"]
+        },
+        emergingRoles: [
+          { title: "AI Product Engineer", description: "Blends engineering, product, and UX to ship AI-powered features." },
+          { title: "AI Platform Engineer", description: "Builds internal tooling and guardrails for safe AI use." },
+          { title: "Data & AI Governance Specialist", description: "Defines policies around data usage and model behavior." }
+        ],
+        learningRoadmap: {
+          now: ["Adopt an AI coding assistant for everyday tasks.", "Strengthen system design skills.", "Learn enough ML to understand how models work."],
+          next: ["Build 1-2 projects integrating AI APIs end-to-end.", "Deepen security and reliability knowledge.", "Mentor someone more junior."],
+          later: ["Specialize: AI infra, applied ML, or domain-specific platforms.", "Stay active in your domain community."]
+        },
+        stageAdvice: {
+          early: { headline: "Use AI to accelerate learning, not skip it.", bullets: ["Build lots of small projects.", "Focus on fundamentals.", "Document your work publicly."] },
+          mid: { headline: "Move up the value chain.", bullets: ["Volunteer for cross-team AI projects.", "Invest in communication.", "Channel AI to reduce low-value work."] },
+          late: { headline: "Leverage your pattern recognition.", bullets: ["Position yourself as the AI safety judge.", "Shift toward architecture and leadership.", "Codify your experience into training."] }
+        }
+      },
+      accounting_finance: {
+        id: "accounting_finance",
+        label: "Accounting & Finance",
+        aiImpactLevel: "High automation threat + strong advisory upside",
+        overallAutomationRisk: 0.65,
+        opportunityLevel: 0.75,
+        impactSummary: "Transaction processing and standard reporting are becoming heavily automated. Value migrates toward advisory, scenario planning, and strategic decisions.",
+        taskPatterns: [
+          { name: "Bookkeeping & reconciliations", automation: "High", explanation: "Bank feeds, OCR, and AI tools are automating categorization." },
+          { name: "Compliance & routine filings", automation: "High", explanation: "Tax prep and basic audits are increasingly AI-assisted." },
+          { name: "Management reporting & FP&A", automation: "Medium", explanation: "AI speeds up reports but deciding which scenarios matter stays human." },
+          { name: "Strategic advisory", automation: "Low", explanation: "Helping leaders interpret numbers and design strategies remains human." }
+        ],
+        skillShift: {
+          moreValuable: ["Advisory skills: storytelling with numbers", "Systems thinking across finance and ops", "Analytics and scenario modeling tools", "Understanding regulations + technology"],
+          lessValuable: ["Manual data entry", "Rote preparation of standard reports"],
+          timeless: ["Integrity and trustworthiness", "Attention to detail", "Explaining complex topics simply"]
+        },
+        emergingRoles: [
+          { title: "AI-Enhanced Controller", description: "Owns automated workflows while elevating to business partner." },
+          { title: "Data-Savvy FP&A Partner", description: "Uses AI tools to run scenarios and guide investments." },
+          { title: "Digital Audit Specialist", description: "Combines accounting and data to monitor risk in real-time." }
+        ],
+        learningRoadmap: {
+          now: ["Adopt AI tools for reconciliations.", "Learn a modern BI tool.", "Practice turning reports into briefings."],
+          next: ["Deepen forecasting and scenario planning.", "Partner with non-finance teams.", "Learn about continuous auditing."],
+          later: ["Position yourself as strategic finance leader.", "Specialize: tax strategy, M&A, or operational finance."]
+        },
+        stageAdvice: {
+          early: { headline: "Use automation to escape the spreadsheet dungeon.", bullets: ["Learn underlying accounting logic.", "Volunteer to pilot new finance tools.", "Practice plain-language communication."] },
+          mid: { headline: "Transition from reporting to decision-partner.", bullets: ["Spend time with operators.", "Automate routine tasks.", "Build cross-functional credibility."] },
+          late: { headline: "Guard the system and mentor the next generation.", bullets: ["Lead finance modernization.", "Define ethical AI boundaries.", "Develop future leaders."] }
+        }
+      },
+      healthcare_clinical: {
+        id: "healthcare_clinical",
+        label: "Healthcare — Clinical Roles",
+        aiImpactLevel: "Highly augmented, human care remains core",
+        overallAutomationRisk: 0.35,
+        opportunityLevel: 0.8,
+        impactSummary: "Diagnostics and documentation are increasingly AI-assisted. Human value centers on clinical judgment, complex care, empathy, and coordinating across moving parts.",
+        taskPatterns: [
+          { name: "Note-taking & documentation", automation: "High", explanation: "Ambient scribing and AI summaries reduce time spent writing." },
+          { name: "Diagnostics & triage support", automation: "Medium", explanation: "Decision support offers suggestions, but clinicians remain responsible." },
+          { name: "Hands-on procedures & care", automation: "Low", explanation: "Physical care and bedside manner remain deeply human." },
+          { name: "Care coordination", automation: "Medium", explanation: "AI helps with scheduling but real-world coordination is messy." }
+        ],
+        skillShift: {
+          moreValuable: ["Interpreting decision-support tools", "Team-based care skills", "Digital literacy with health IT", "Cultural competence"],
+          lessValuable: ["Manual documentation", "Rote memorization of facts"],
+          timeless: ["Empathy and patient advocacy", "Clinical reasoning under uncertainty", "Integrity and professionalism"]
+        },
+        emergingRoles: [
+          { title: "AI-Enabled Clinician Leader", description: "Champions safe AI use while mentoring colleagues." },
+          { title: "Virtual/Hybrid Care Specialist", description: "Combines telemedicine and in-person care pathways." },
+          { title: "Clinical Informatics Lead", description: "Bridges clinical practice with data and digital tools." }
+        ],
+        learningRoadmap: {
+          now: ["Learn how AI decision support works in your specialty.", "Practice explaining risk in plain language.", "Strengthen team-based care habits."],
+          next: ["Join quality improvement initiatives.", "Get comfortable reading patient population dashboards.", "Learn about AI bias in healthcare."],
+          later: ["Move into leadership shaping technology deployment.", "Mentor newer clinicians on compassionate care."]
+        },
+        stageAdvice: {
+          early: { headline: "Let tools reduce paperwork; focus on patients.", bullets: ["Adopt documentation helpers.", "Seek feedback on clinical reasoning.", "Observe how others incorporate tech."] },
+          mid: { headline: "Shape workflows so tech helps, not harms.", bullets: ["Participate in tool decisions.", "Advocate for patient interaction time.", "Mentor junior colleagues."] },
+          late: { headline: "Become steward of tradition and transformation.", bullets: ["Use influence to ensure patient well-being.", "Focus on teaching and quality.", "Codify tacit knowledge."] }
+        }
+      },
+      education_training: {
+        id: "education_training",
+        label: "Education & Training",
+        aiImpactLevel: "High content automation, human guidance essential",
+        overallAutomationRisk: 0.5,
+        opportunityLevel: 0.8,
+        impactSummary: "Content generation and basic feedback are increasingly automated. Educators who thrive will focus on relationship, motivation, and designing learning experiences that use AI wisely.",
+        taskPatterns: [
+          { name: "Worksheets, quizzes & practice", automation: "High", explanation: "AI can generate exercises customized to different levels." },
+          { name: "Grading & feedback (basic)", automation: "Medium", explanation: "AI can assist with grading, especially objective items." },
+          { name: "Mentoring & motivation", automation: "Low", explanation: "Helping learners build confidence is deeply human." },
+          { name: "Curriculum design", automation: "Medium", explanation: "AI suggests materials, humans sequence and contextualize." }
+        ],
+        skillShift: {
+          moreValuable: ["Facilitation, coaching, mentoring", "Assessment design beyond simple recall", "Integrating AI into learning safely", "Collaboration with families and industry"],
+          lessValuable: ["Hand-making routine worksheets", "Purely lecture-based teaching"],
+          timeless: ["Empathy and care for learners", "Subject matter understanding", "Designing rich learning experiences"]
+        },
+        emergingRoles: [
+          { title: "AI-Augmented Classroom Teacher", description: "Uses AI to personalize while spending more time on relationships." },
+          { title: "Instructional Designer", description: "Designs courses and blended experiences." },
+          { title: "Workforce Pathways Lead", description: "Connects learning with real-world careers." }
+        ],
+        learningRoadmap: {
+          now: ["Experiment with AI tools for lesson planning.", "Develop routines freeing time for small-group work.", "Learn about AI literacy to teach students."],
+          next: ["Design a course incorporating AI as a learning tool.", "Collaborate on cross-disciplinary projects.", "Explore instructional design roles."],
+          later: ["Take leadership in curriculum or school design.", "Influence policy around AI in education."]
+        },
+        stageAdvice: {
+          early: { headline: "Don't fear AI; co-opt it for better learning.", bullets: ["Use AI to reduce busywork.", "Design activities AI can't do for students.", "Build innovative lesson portfolio."] },
+          mid: { headline: "Move from content delivery to system design.", bullets: ["Lead curriculum teams.", "Partner with community.", "Help colleagues build AI literacy."] },
+          late: { headline: "Shape the future of learning.", bullets: ["Move into strategic roles.", "Protect what's human in education.", "Mentor new educators."] }
+        }
+      },
+      general_knowledge: {
+        id: "general_knowledge",
+        label: "General Knowledge Worker",
+        aiImpactLevel: "Broad automation of routine tasks across desk jobs",
+        overallAutomationRisk: 0.6,
+        opportunityLevel: 0.75,
+        impactSummary: "Email, documentation, basic analysis, and coordination tasks are increasingly AI-assisted. Value shifts toward owning outcomes, improving processes, and building expertise.",
+        taskPatterns: [
+          { name: "Email & documentation", automation: "High", explanation: "AI drafts responses and documents; humans decide priorities." },
+          { name: "Basic analysis & reporting", automation: "High", explanation: "Tools summarize data; humans interpret and act." },
+          { name: "Meeting notes & coordination", automation: "High", explanation: "Transcription and summarization reduce admin work." },
+          { name: "Problem-solving & decision-making", automation: "Low", explanation: "Understanding context and trade-offs remains human work." }
+        ],
+        skillShift: {
+          moreValuable: ["Owning clear outcomes and metrics", "Process improvement", "Cross-functional communication", "Learning to use AI as force multiplier"],
+          lessValuable: ["Manual reporting", "Scheduling as primary value", "Passive meeting participation"],
+          timeless: ["Critical thinking", "Relationship building", "Clear communication"]
+        },
+        emergingRoles: [
+          { title: "AI-Savvy Operations Generalist", description: "Ties teams together and automates busywork." },
+          { title: "Chief of Staff / Strategic Ops", description: "Supports leaders with analysis and orchestration." },
+          { title: "No-Code / Automation Specialist", description: "Builds lightweight workflows tying together existing tools." }
+        ],
+        learningRoadmap: {
+          now: ["Adopt AI tools for writing and summarization.", "Clarify main outcomes your role supports.", "Map weekly tasks and identify automatable ones."],
+          next: ["Automate repetitive tasks with no-code tools.", "Ask to own small projects with clear success criteria.", "Deepen expertise in at least one domain."],
+          later: ["Move toward roles owning budgets or key processes.", "Shape how AI tools are deployed in your area."]
+        },
+        stageAdvice: {
+          early: { headline: "Don't be the 'calendar person' forever.", bullets: ["Use AI to handle low-value work.", "Ask for outcome-based responsibilities.", "Document your wins."] },
+          mid: { headline: "Become the glue that makes teams effective.", bullets: ["Use automation to keep information flowing.", "Volunteer for cross-team initiatives.", "Build reputation for clear thinking."] },
+          late: { headline: "Move from glue to architect.", bullets: ["Shape how teams are structured.", "Mentor others in AI and automation.", "Push for clarity about priorities."] }
+        }
+      }
+    };
+
+    // Domain keyword mapping for auto-detection
+    const DOMAIN_KEYWORDS = [
+      { id: "software_data", keywords: ["software", "developer", "engineer", "programmer", "data scientist", "ml", "ai", "cloud", "devops"] },
+      { id: "accounting_finance", keywords: ["accountant", "accounting", "cpa", "auditor", "controller", "finance", "financial", "tax", "treasury"] },
+      { id: "law_compliance", keywords: ["lawyer", "attorney", "legal", "paralegal", "compliance", "counsel"] },
+      { id: "marketing_comms", keywords: ["marketing", "brand", "copywriter", "social media", "communications", "content", "seo"] },
+      { id: "sales_customer", keywords: ["sales", "account executive", "customer success", "support", "bdr", "sdr"] },
+      { id: "healthcare_clinical", keywords: ["nurse", "physician", "doctor", "md", "rn", "np", "pa", "pharmacist", "therapist"] },
+      { id: "healthcare_admin", keywords: ["hospital administrator", "clinic manager", "healthcare admin", "medical billing"] },
+      { id: "education_training", keywords: ["teacher", "professor", "educator", "instructional", "curriculum"] },
+      { id: "operations_logistics", keywords: ["operations", "supply chain", "logistics", "warehouse", "inventory"] },
+      { id: "creative_design", keywords: ["designer", "graphic", "ux", "ui", "art director", "illustrator", "video editor"] },
+      { id: "manufacturing_trades", keywords: ["electrician", "plumber", "mechanic", "welder", "machinist", "technician"] },
+      { id: "public_social", keywords: ["public policy", "government", "nonprofit", "social worker", "community organizer"] }
+    ];
+
+    function inferDomainFromCareerName(name) {
+      if (!name) return "general_knowledge";
+      const lower = name.toLowerCase();
+      for (const dom of DOMAIN_KEYWORDS) {
+        for (const kw of dom.keywords) {
+          if (lower.includes(kw)) return dom.id;
+        }
+      }
+      return "general_knowledge";
+    }
+
+    function classifyRiskLabel(score) {
+      if (score <= 0.34) return { label: "Low", className: "score-tag-low" };
+      if (score <= 0.67) return { label: "Medium", className: "score-tag-medium" };
+      return { label: "High", className: "score-tag-high" };
+    }
+
+    function analyzeCareer(careerNameRaw, stageKey, explicitDomain) {
+      const careerName = careerNameRaw.trim();
+      const safeCareerName = escapeHtml(careerName || "your role");
+      const domainId = explicitDomain && explicitDomain !== "auto" ? explicitDomain : inferDomainFromCareerName(careerName);
+      const profile = DOMAIN_PROFILES[domainId] || DOMAIN_PROFILES["general_knowledge"];
+
+      const automationScore = profile.overallAutomationRisk;
+      const opportunityScore = profile.opportunityLevel || (1 - automationScore * 0.5);
+      const overallResilience = Math.round((opportunityScore * 0.6 + (1 - automationScore) * 0.4) * 100);
+
+      const stage = STAGE_LABELS[stageKey] || STAGE_LABELS["mid"];
+      const stageAdvice = profile.stageAdvice && profile.stageAdvice[stageKey] ? profile.stageAdvice[stageKey] : null;
+
+      return { careerName: safeCareerName, domainId, profile, stageKey, stageLabel: stage, automationScore, opportunityScore, overallResilience, stageAdvice };
+    }
+
+    function renderResults(analysis) {
+      const profile = analysis.profile;
+      const riskInfo = classifyRiskLabel(analysis.automationScore);
+      const automationPercent = Math.round(analysis.automationScore * 100);
+      const opportunityPercent = Math.round(analysis.opportunityScore * 100);
+
+      const resultsEl = document.getElementById("results");
+      resultsEl.innerHTML = `
+        <div class="results-header" style="margin-bottom:10px;">
+          <h2 style="margin:0;font-size:1.05rem;">Analysis: <span style="font-weight:600;color:#e0f2fe;">${analysis.careerName}</span></h2>
+          <p style="margin:4px 0;font-size:0.82rem;color:var(--text-soft);">Domain: ${escapeHtml(profile.label)} | Stage: ${escapeHtml(analysis.stageLabel)}</p>
+        </div>
+
+        <div class="score-row">
+          <div class="score-card">
+            <div class="score-label"><span>Automation exposure</span><span class="score-tag ${riskInfo.className}">${riskInfo.label}</span></div>
+            <div class="score-value">${automationPercent}%</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${automationPercent}%"></div></div>
+            <div class="mini-caption">of routine tasks at risk of automation</div>
+          </div>
+          <div class="score-card">
+            <div class="score-label"><span>Opportunity level</span></div>
+            <div class="score-value">${opportunityPercent}%</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${opportunityPercent}%"></div></div>
+            <div class="mini-caption">potential upside with upskilling</div>
+          </div>
+          <div class="score-card">
+            <div class="score-label"><span>Resilience score</span></div>
+            <div class="score-value">${analysis.overallResilience}/100</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${analysis.overallResilience}%"></div></div>
+            <div class="mini-caption">future-proof potential with adaptation</div>
+          </div>
+        </div>
+
+        <div class="results-grid">
+          <div class="card">
+            <h3>What's changing</h3>
+            <p>${escapeHtml(profile.impactSummary)}</p>
+            <div class="tag-row">
+              <span class="tag tag-accent">AI impact: ${escapeHtml(profile.aiImpactLevel)}</span>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Skill shifts</h3>
+            <div class="two-col">
+              <div>
+                <div class="list-title">More valuable</div>
+                <ul class="list">${(profile.skillShift.moreValuable || []).slice(0,4).map(s => `<li>${escapeHtml(s)}</li>`).join("")}</ul>
+              </div>
+              <div>
+                <div class="list-title">Less central</div>
+                <ul class="list">${(profile.skillShift.lessValuable || []).map(s => `<li>${escapeHtml(s)}</li>`).join("")}</ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="results-grid" style="margin-top:10px;">
+          <div class="card">
+            <h3>Task breakdown</h3>
+            <div class="grid-3">
+              ${(profile.taskPatterns || []).map(p => `
+                <div class="mini-card">
+                  <div class="mini-title">${escapeHtml(p.name)}</div>
+                  <div class="mini-tag-row"><span class="mini-tag mini-tag-ai">${escapeHtml(p.automation)} automation</span></div>
+                  <div class="mini-text">${escapeHtml(p.explanation)}</div>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+          <div class="card">
+            <h3>Emerging roles</h3>
+            <div class="grid-3">
+              ${(profile.emergingRoles || []).map(r => `
+                <div class="mini-card">
+                  <div class="mini-title">${escapeHtml(r.title)}</div>
+                  <div class="mini-text">${escapeHtml(r.description)}</div>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        </div>
+
+        <div class="results-grid" style="margin-top:10px;">
+          <div class="card">
+            <h3>Learning roadmap</h3>
+            ${profile.learningRoadmap ? `
+              <div class="roadmap-section">
+                <div class="roadmap-title-row"><div class="roadmap-title">Now</div><div class="roadmap-timeline">0–6 months</div></div>
+                <ul class="roadmap-list">${(profile.learningRoadmap.now || []).map(i => `<li>${escapeHtml(i)}</li>`).join("")}</ul>
+              </div>
+              <div class="roadmap-section">
+                <div class="roadmap-title-row"><div class="roadmap-title">Next</div><div class="roadmap-timeline">6–24 months</div></div>
+                <ul class="roadmap-list">${(profile.learningRoadmap.next || []).map(i => `<li>${escapeHtml(i)}</li>`).join("")}</ul>
+              </div>
+              <div class="roadmap-section">
+                <div class="roadmap-title-row"><div class="roadmap-title">Later</div><div class="roadmap-timeline">2+ years</div></div>
+                <ul class="roadmap-list">${(profile.learningRoadmap.later || []).map(i => `<li>${escapeHtml(i)}</li>`).join("")}</ul>
+              </div>
+            ` : ""}
+          </div>
+          <div class="card">
+            <h3>Stage-specific strategy</h3>
+            ${analysis.stageAdvice ? `
+              <div class="stage-callout">
+                <div class="stage-callout-title">${escapeHtml(analysis.stageLabel)}</div>
+                ${analysis.stageAdvice.headline ? `<p><strong>${escapeHtml(analysis.stageAdvice.headline)}</strong></p>` : ""}
+                ${analysis.stageAdvice.bullets ? `<ul class="roadmap-list">${analysis.stageAdvice.bullets.map(b => `<li>${escapeHtml(b)}</li>`).join("")}</ul>` : ""}
+              </div>
+            ` : ""}
+          </div>
+        </div>
+      `;
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+      const form = document.getElementById("career-form");
+      const careerInput = document.getElementById("career-input");
+      const stageSelect = document.getElementById("stage-select");
+      const domainSelect = document.getElementById("domain-select");
+      const errorEl = document.getElementById("form-error");
+
+      form.addEventListener("submit", function(event) {
+        event.preventDefault();
+        const careerName = careerInput.value.trim();
+        if (!careerName) {
+          errorEl.style.display = "block";
+          errorEl.textContent = "Please enter a career or role to analyze.";
+          return;
+        }
+        errorEl.style.display = "none";
+        const analysis = analyzeCareer(careerName, stageSelect.value, domainSelect.value);
+        renderResults(analysis);
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Squeeze | Sandwich Generation Financial Planner</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #0a0a0f;
+            --bg-card: #12121a;
+            --bg-elevated: #1a1a25;
+            --text-primary: #e8e6e3;
+            --text-secondary: #8a8a95;
+            --text-muted: #5a5a65;
+            --accent-elder: #c9a227;
+            --accent-elder-muted: rgba(201, 162, 39, 0.15);
+            --accent-child: #4a9eff;
+            --accent-child-muted: rgba(74, 158, 255, 0.15);
+            --accent-self: #2dd4bf;
+            --accent-self-muted: rgba(45, 212, 191, 0.15);
+            --accent-pressure: #ef4444;
+            --accent-pressure-muted: rgba(239, 68, 68, 0.12);
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-active: rgba(255, 255, 255, 0.12);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+
+        header {
+            text-align: center;
+            padding: 3rem 0 4rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        h1 {
+            font-family: 'DM Serif Display', serif;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 400;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0.5rem auto 0;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 1100px) {
+            .main-grid { grid-template-columns: 1fr; }
+        }
+
+        .input-panel {
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border-subtle);
+            padding: 1.5rem;
+            height: fit-content;
+        }
+
+        .section-title {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 2px;
+        }
+
+        .section-title.elder::before { background: var(--accent-elder); }
+        .section-title.child::before { background: var(--accent-child); }
+        .section-title.self::before { background: var(--accent-self); }
+
+        .input-section {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .person-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+            padding: 0.75rem;
+            background: var(--bg-elevated);
+            border-radius: 10px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .person-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            min-width: 70px;
+        }
+
+        .age-input {
+            width: 60px;
+            padding: 0.5rem;
+            background: var(--bg-deep);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-family: 'IBM Plex Mono', monospace;
+            text-align: center;
+        }
+
+        select {
+            flex: 1;
+            padding: 0.5rem;
+            background: var(--bg-deep);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+
+        .modifier-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .modifier-btn {
+            padding: 0.5rem 0.75rem;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modifier-btn:hover { border-color: var(--border-active); }
+        .modifier-btn.active {
+            background: var(--accent-elder-muted);
+            border-color: var(--accent-elder);
+            color: var(--accent-elder);
+        }
+        .modifier-btn.active.child-mod {
+            background: var(--accent-child-muted);
+            border-color: var(--accent-child);
+            color: var(--accent-child);
+        }
+
+        .add-btn {
+            width: 100%;
+            padding: 0.6rem;
+            background: transparent;
+            border: 1px dashed var(--border-subtle);
+            border-radius: 8px;
+            color: var(--text-muted);
+            cursor: pointer;
+            margin-top: 0.5rem;
+        }
+
+        .remove-btn {
+            width: 24px;
+            height: 24px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            opacity: 0.5;
+        }
+
+        .remove-btn:hover { opacity: 1; color: var(--accent-pressure); }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .summary-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border-subtle);
+            padding: 1.25rem;
+            position: relative;
+        }
+
+        .summary-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .summary-card.elder::before { background: var(--accent-elder); }
+        .summary-card.child::before { background: var(--accent-child); }
+        .summary-card.self::before { background: var(--accent-self); }
+        .summary-card.total::before { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+        .card-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .card-value {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 1.75rem;
+            font-weight: 500;
+            margin-top: 0.5rem;
+        }
+
+        .card-value.elder { color: var(--accent-elder); }
+        .card-value.child { color: var(--accent-child); }
+        .card-value.self { color: var(--accent-self); }
+        .card-value.total { color: var(--accent-pressure); }
+
+        .chart-container {
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border-subtle);
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .chart-title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        canvas { width: 100%; height: 300px; }
+
+        .breakdown-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .breakdown-table th {
+            text-align: left;
+            padding: 0.75rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .breakdown-table td {
+            padding: 0.75rem;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.85rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .your-section {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .your-age-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .retirement-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            background: var(--accent-self-muted);
+            border-radius: 8px;
+            margin-top: 0.75rem;
+        }
+
+        .retirement-label {
+            font-size: 0.8rem;
+            color: var(--accent-self);
+            flex: 1;
+        }
+
+        .instructions {
+            background: var(--bg-elevated);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .peak-indicator {
+            background: var(--accent-pressure-muted);
+            border-left: 3px solid var(--accent-pressure);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .peak-indicator h4 {
+            color: var(--accent-pressure);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .legend {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>The Squeeze</h1>
+            <p class="subtitle">Financial planning for the sandwich generation—mapping the years when you're supporting everyone but yourself</p>
+        </header>
+
+        <div class="main-grid">
+            <div class="input-panel">
+                <div class="instructions">
+                    <strong>How to use:</strong> Enter ages for parents and children you support. Adjust modifiers to reflect their situations. The tool projects costs forward, showing when your financial pressure peaks.
+                </div>
+
+                <div class="your-section">
+                    <div class="section-title self">Your Situation</div>
+                    <div class="your-age-row">
+                        <span style="font-size: 0.85rem; color: var(--text-secondary);">Your age</span>
+                        <input type="number" class="age-input" id="your-age" value="52" min="35" max="75">
+                    </div>
+                    <select id="your-location" style="width: 100%; margin-bottom: 0.75rem;">
+                        <option value="midwest">Midwest (Lower Cost)</option>
+                        <option value="south">South (Moderate Cost)</option>
+                        <option value="northeast" selected>Northeast (Higher Cost)</option>
+                        <option value="west">West Coast (Highest Cost)</option>
+                    </select>
+                    <div class="retirement-row">
+                        <span class="retirement-label">Monthly retirement savings goal</span>
+                        <input type="number" class="age-input" id="retirement-savings" value="2000" style="width: 80px;">
+                    </div>
+                </div>
+
+                <div class="input-section">
+                    <div class="section-title elder">Aging Parents</div>
+                    <div id="parents-container"></div>
+                    <button class="add-btn" onclick="addParent()">+ Add Parent</button>
+                </div>
+
+                <div class="input-section">
+                    <div class="section-title child">Adult Children</div>
+                    <div id="children-container"></div>
+                    <button class="add-btn" onclick="addChild()">+ Add Child</button>
+                </div>
+            </div>
+
+            <div id="results-panel">
+                <div style="text-align: center; padding: 4rem 2rem; color: var(--text-muted);">
+                    <h3 style="font-family: 'DM Serif Display', serif; font-size: 1.5rem; color: var(--text-secondary);">Add family members to see projections</h3>
+                    <p>Enter your parents and children to calculate the financial squeeze over time</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const COST_DATA = {
+            regions: {
+                midwest: { multiplier: 0.85 },
+                south: { multiplier: 0.90 },
+                northeast: { multiplier: 1.15 },
+                west: { multiplier: 1.25 }
+            },
+            elderCare: {
+                '65-74': { good: 200, fair: 800, declining: 1800, poor: 3500 },
+                '75-84': { good: 400, fair: 1500, declining: 3200, poor: 5500 },
+                '85+': { good: 800, fair: 2500, declining: 5000, poor: 8000 }
+            },
+            childSupport: {
+                'at-home': 600, 'rent-help': 1200, 'full-support': 2000, 'independent': 150
+            },
+            childByAge: {
+                18: 0.95, 19: 0.90, 20: 0.85, 21: 0.80, 22: 0.75,
+                23: 0.65, 24: 0.55, 25: 0.45, 26: 0.35, 27: 0.28,
+                28: 0.22, 29: 0.18, 30: 0.15
+            }
+        };
+
+        let state = {
+            yourAge: 52,
+            yourLocation: 'northeast',
+            retirementSavings: 2000,
+            parents: [],
+            children: [],
+            projectionYears: 15
+        };
+
+        let parentIdCounter = 0;
+        let childIdCounter = 0;
+
+        function addParent() {
+            const id = ++parentIdCounter;
+            state.parents.push({ id, age: 78, health: 'fair', hasLTC: false });
+            renderParents();
+            calculate();
+        }
+
+        function removeParent(id) {
+            state.parents = state.parents.filter(p => p.id !== id);
+            renderParents();
+            calculate();
+        }
+
+        function updateParent(id, field, value) {
+            const parent = state.parents.find(p => p.id === id);
+            if (parent) { parent[field] = value; calculate(); }
+        }
+
+        function renderParents() {
+            const container = document.getElementById('parents-container');
+            container.innerHTML = state.parents.map((p, i) => `
+                <div class="person-row">
+                    <span class="person-label">Parent ${i + 1}</span>
+                    <input type="number" class="age-input" value="${p.age}" min="60" max="100"
+                           onchange="updateParent(${p.id}, 'age', parseInt(this.value))">
+                    <button class="remove-btn" onclick="removeParent(${p.id})">×</button>
+                </div>
+                <div class="modifier-grid" style="margin-bottom: 1rem;">
+                    <button class="modifier-btn ${p.health === 'good' ? 'active' : ''}" 
+                            onclick="updateParent(${p.id}, 'health', 'good')">Good Health</button>
+                    <button class="modifier-btn ${p.health === 'fair' ? 'active' : ''}"
+                            onclick="updateParent(${p.id}, 'health', 'fair')">Fair Health</button>
+                    <button class="modifier-btn ${p.health === 'declining' ? 'active' : ''}"
+                            onclick="updateParent(${p.id}, 'health', 'declining')">Declining</button>
+                    <button class="modifier-btn ${p.health === 'poor' ? 'active' : ''}"
+                            onclick="updateParent(${p.id}, 'health', 'poor')">Poor Health</button>
+                </div>
+            `).join('');
+        }
+
+        function addChild() {
+            const id = ++childIdCounter;
+            state.children.push({ id, age: 24, living: 'at-home' });
+            renderChildren();
+            calculate();
+        }
+
+        function removeChild(id) {
+            state.children = state.children.filter(c => c.id !== id);
+            renderChildren();
+            calculate();
+        }
+
+        function updateChild(id, field, value) {
+            const child = state.children.find(c => c.id === id);
+            if (child) { child[field] = value; calculate(); }
+        }
+
+        function renderChildren() {
+            const container = document.getElementById('children-container');
+            container.innerHTML = state.children.map((c, i) => `
+                <div class="person-row">
+                    <span class="person-label">Child ${i + 1}</span>
+                    <input type="number" class="age-input" value="${c.age}" min="16" max="40"
+                           onchange="updateChild(${c.id}, 'age', parseInt(this.value))">
+                    <button class="remove-btn" onclick="removeChild(${c.id})">×</button>
+                </div>
+                <div class="modifier-grid" style="margin-bottom: 1rem;">
+                    <button class="modifier-btn child-mod ${c.living === 'at-home' ? 'active' : ''}"
+                            onclick="updateChild(${c.id}, 'living', 'at-home')">At Home</button>
+                    <button class="modifier-btn child-mod ${c.living === 'rent-help' ? 'active' : ''}"
+                            onclick="updateChild(${c.id}, 'living', 'rent-help')">Rent Help</button>
+                    <button class="modifier-btn child-mod ${c.living === 'full-support' ? 'active' : ''}"
+                            onclick="updateChild(${c.id}, 'living', 'full-support')">Full Support</button>
+                    <button class="modifier-btn child-mod ${c.living === 'independent' ? 'active' : ''}"
+                            onclick="updateChild(${c.id}, 'living', 'independent')">Independent</button>
+                </div>
+            `).join('');
+        }
+
+        function getAgeBracket(age) {
+            if (age < 75) return '65-74';
+            if (age < 85) return '75-84';
+            return '85+';
+        }
+
+        function calculateParentCost(parent, yearsFromNow) {
+            let age = parent.age + yearsFromNow;
+            if (age > 100) return 0;
+            const bracket = getAgeBracket(age);
+            let baseCost = COST_DATA.elderCare[bracket][parent.health];
+            const regionMult = COST_DATA.regions[state.yourLocation].multiplier;
+            return Math.round(baseCost * regionMult * Math.pow(1.05, yearsFromNow));
+        }
+
+        function calculateChildCost(child, yearsFromNow) {
+            const age = child.age + yearsFromNow;
+            if (age > 35) return 0;
+            const supportProb = COST_DATA.childByAge[Math.min(age, 30)] || 0.15;
+            let baseCost = COST_DATA.childSupport[child.living];
+            const regionMult = COST_DATA.regions[state.yourLocation].multiplier;
+            return Math.round(baseCost * regionMult * supportProb * Math.pow(1.03, yearsFromNow));
+        }
+
+        function calculate() {
+            state.yourAge = parseInt(document.getElementById('your-age').value) || 52;
+            state.yourLocation = document.getElementById('your-location').value;
+            state.retirementSavings = parseInt(document.getElementById('retirement-savings').value) || 2000;
+
+            if (state.parents.length === 0 && state.children.length === 0) {
+                document.getElementById('results-panel').innerHTML = `
+                    <div style="text-align: center; padding: 4rem 2rem; color: var(--text-muted);">
+                        <h3 style="font-family: 'DM Serif Display', serif; font-size: 1.5rem; color: var(--text-secondary);">Add family members to see projections</h3>
+                        <p>Enter your parents and children to calculate the financial squeeze over time</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const projections = [];
+            const currentYear = new Date().getFullYear();
+            let peakYear = null;
+            let peakTotal = 0;
+
+            for (let y = 0; y <= state.projectionYears; y++) {
+                let parentCosts = 0;
+                let childCosts = 0;
+                state.parents.forEach(p => parentCosts += calculateParentCost(p, y));
+                state.children.forEach(c => childCosts += calculateChildCost(c, y));
+                const retirement = Math.round(state.retirementSavings * Math.pow(1.03, y));
+                const total = parentCosts + childCosts + retirement;
+
+                if (total > peakTotal) {
+                    peakTotal = total;
+                    peakYear = { year: currentYear + y, yourAge: state.yourAge + y, total, parentCosts, childCosts, retirement };
+                }
+
+                projections.push({
+                    year: currentYear + y,
+                    yourAge: state.yourAge + y,
+                    parentCosts, childCosts, retirement, total
+                });
+            }
+
+            renderResults(projections, peakYear);
+        }
+
+        function formatCurrency(amount) {
+            return '$' + amount.toLocaleString();
+        }
+
+        function renderResults(projections, peakYear) {
+            const current = projections[0];
+            document.getElementById('results-panel').innerHTML = `
+                <div class="summary-cards">
+                    <div class="summary-card elder">
+                        <div class="card-label">Monthly Elder Care</div>
+                        <div class="card-value elder">${formatCurrency(current.parentCosts)}</div>
+                    </div>
+                    <div class="summary-card child">
+                        <div class="card-label">Monthly Child Support</div>
+                        <div class="card-value child">${formatCurrency(current.childCosts)}</div>
+                    </div>
+                    <div class="summary-card self">
+                        <div class="card-label">Retirement Savings</div>
+                        <div class="card-value self">${formatCurrency(current.retirement)}</div>
+                    </div>
+                    <div class="summary-card total">
+                        <div class="card-label">Total Monthly Burden</div>
+                        <div class="card-value total">${formatCurrency(current.total)}</div>
+                    </div>
+                </div>
+
+                <div class="peak-indicator">
+                    <h4>⚠️ Peak Financial Pressure</h4>
+                    <p style="color: var(--text-secondary);">
+                        Your burden reaches <strong style="color: var(--accent-pressure)">${formatCurrency(peakYear.total)}/month</strong> 
+                        in <strong>${peakYear.year}</strong> when you're <strong>${peakYear.yourAge}</strong> years old.
+                    </p>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-title">${state.projectionYears}-Year Projection</div>
+                    <canvas id="chart"></canvas>
+                    <div class="legend">
+                        <div class="legend-item"><div class="legend-color" style="background: var(--accent-elder);"></div>Elder Care</div>
+                        <div class="legend-item"><div class="legend-color" style="background: var(--accent-child);"></div>Child Support</div>
+                        <div class="legend-item"><div class="legend-color" style="background: var(--accent-self);"></div>Retirement</div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-title">Year-by-Year Breakdown</div>
+                    <table class="breakdown-table">
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                <th>Your Age</th>
+                                <th style="color: var(--accent-elder);">Elder Care</th>
+                                <th style="color: var(--accent-child);">Child Support</th>
+                                <th style="color: var(--accent-self);">Retirement</th>
+                                <th style="color: var(--accent-pressure);">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${projections.map(p => `
+                                <tr style="${p.year === peakYear.year ? 'background: var(--accent-pressure-muted);' : ''}">
+                                    <td>${p.year}</td>
+                                    <td>${p.yourAge}</td>
+                                    <td style="color: var(--accent-elder);">${formatCurrency(p.parentCosts)}</td>
+                                    <td style="color: var(--accent-child);">${formatCurrency(p.childCosts)}</td>
+                                    <td style="color: var(--accent-self);">${formatCurrency(p.retirement)}</td>
+                                    <td style="color: var(--accent-pressure); font-weight: 600;">${formatCurrency(p.total)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            drawChart(projections, peakYear);
+        }
+
+        function drawChart(projections, peakYear) {
+            const canvas = document.getElementById('chart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = 300 * dpr;
+            canvas.style.height = '300px';
+            ctx.scale(dpr, dpr);
+
+            const width = rect.width;
+            const height = 300;
+            const padding = { top: 20, right: 20, bottom: 40, left: 60 };
+            const chartW = width - padding.left - padding.right;
+            const chartH = height - padding.top - padding.bottom;
+
+            ctx.clearRect(0, 0, width, height);
+
+            const maxVal = Math.max(...projections.map(p => p.total)) * 1.1;
+            const barWidth = chartW / projections.length * 0.7;
+            const gap = chartW / projections.length * 0.3;
+
+            // Grid lines
+            ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+            for (let i = 0; i <= 5; i++) {
+                const y = padding.top + (chartH / 5) * i;
+                ctx.beginPath();
+                ctx.moveTo(padding.left, y);
+                ctx.lineTo(width - padding.right, y);
+                ctx.stroke();
+
+                ctx.fillStyle = '#5a5a65';
+                ctx.font = '11px IBM Plex Mono';
+                ctx.textAlign = 'right';
+                const val = maxVal - (maxVal / 5) * i;
+                ctx.fillText('$' + Math.round(val).toLocaleString(), padding.left - 10, y + 4);
+            }
+
+            // Stacked bars
+            projections.forEach((p, i) => {
+                const x = padding.left + (chartW / projections.length) * i + gap / 2;
+                const elderH = (p.parentCosts / maxVal) * chartH;
+                const childH = (p.childCosts / maxVal) * chartH;
+                const retireH = (p.retirement / maxVal) * chartH;
+
+                let y = padding.top + chartH;
+
+                // Elder care
+                ctx.fillStyle = '#c9a227';
+                y -= elderH;
+                ctx.fillRect(x, y, barWidth, elderH);
+
+                // Child support
+                ctx.fillStyle = '#4a9eff';
+                y -= childH;
+                ctx.fillRect(x, y, barWidth, childH);
+
+                // Retirement
+                ctx.fillStyle = '#2dd4bf';
+                y -= retireH;
+                ctx.fillRect(x, y, barWidth, retireH);
+
+                // Peak marker
+                if (p.year === peakYear.year) {
+                    ctx.strokeStyle = '#ef4444';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(x - 2, padding.top + chartH - (p.total / maxVal) * chartH - 2, barWidth + 4, (p.total / maxVal) * chartH + 4);
+                }
+
+                // Year label
+                ctx.fillStyle = '#5a5a65';
+                ctx.font = '10px IBM Plex Mono';
+                ctx.textAlign = 'center';
+                ctx.fillText(p.year, x + barWidth / 2, height - padding.bottom + 15);
+            });
+        }
+
+        // Initialize with sample data
+        addParent();
+        addChild();
+    </script>
+</body>
+</html>

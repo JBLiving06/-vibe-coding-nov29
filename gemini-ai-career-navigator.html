@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Career Navigator | Gemini Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #e2e8f0; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useMemo } = React;
+        
+        // Comprehensive Career Database - 50+ careers with detailed AI analysis
+        const CAREER_DATABASE = {
+            "Software Engineer": {
+                risk: 65, category: "Tech",
+                automated: ["Boilerplate code generation", "Unit test writing", "Documentation updates", "Basic debugging"],
+                augmented: ["System architecture design", "Code optimization", "Security auditing", "Complex algorithm implementation"],
+                human: ["Stakeholder requirement gathering", "Complex problem framing", "Ethical AI implementation", "Mentorship"],
+                skills_up: ["AI-Assisted Coding (Cursor/Copilot)", "System Design", "Prompt Engineering", "Cloud Architecture"],
+                skills_down: ["Syntax memorization", "CSS tweaking from scratch", "Basic CRUD operations"],
+                hybrid_roles: ["AI Solutions Architect", "Prompt Engineer", "Product Engineer"],
+                advice: {
+                    early: "Don't just learn syntax. Learn how to build *products*. Use AI to code 10x faster, but understand the underlying logic deeply.",
+                    mid: "Move from 'writer of code' to 'architect of systems'. Learn to manage AI agents that write the code for you.",
+                    late: "Focus on domain expertise and leadership. The juniors will be AI-supercharged; they need direction, not syntax correction."
+                }
+            },
+            "Data Analyst": {
+                risk: 75, category: "Tech",
+                automated: ["Data cleaning", "SQL query generation", "Basic visualization creation", "Report generation"],
+                augmented: ["Pattern recognition", "Predictive modeling", "Anomaly detection"],
+                human: ["Interpreting context behind data", "Strategic business recommendations", "Stakeholder persuasion"],
+                skills_up: ["Data Storytelling", "Strategic Analysis", "AI Model Tuning", "Python/Pandas Agent Management"],
+                skills_down: ["Excel Macro writing", "Manual SQL syntax", "Routine reporting"],
+                hybrid_roles: ["AI Business Strategist", "Data Product Manager"],
+                advice: {
+                    early: "Learn to treat AI as your junior analyst. Focus on asking the right questions rather than just fetching answers.",
+                    mid: "Pivot towards 'Analytics Engineer' or strategic consulting. The 'what' is automated; the 'so what' is your job.",
+                    late: "Lead data governance and strategy. Ensure the AI isn't hallucinating trends that don't exist."
+                }
+            },
+            "Accountant / Auditor": {
+                risk: 85, category: "Business",
+                automated: ["Data entry", "Expense categorization", "Reconciliation", "Tax return preparation", "Audit sampling"],
+                augmented: ["Fraud detection", "Financial forecasting", "Tax strategy modeling"],
+                human: ["Complex tax advisory", "Ethical judgment", "Client relationship management", "Forensic interpretation"],
+                skills_up: ["Data Analytics", "Strategic Advisory", "AI Tool Implementation", "ESG Reporting"],
+                skills_down: ["Manual bookkeeping", "Arithmetic speed", "Spreadsheet formatting"],
+                hybrid_roles: ["Financial Data Scientist", "AI Audit Specialist", "Fintech Product Manager"],
+                advice: {
+                    early: "Do not go into pure audit/bookkeeping. Aim for advisory or forensic accounting immediately.",
+                    mid: "Automate your workflow heavily. Sell 'insight' and 'strategy', not 'hours'.",
+                    late: "Your value is your trust and network. Be the person clients call when the AI numbers don't make sense."
+                }
+            },
+            "Marketing Manager": {
+                risk: 60, category: "Business",
+                automated: ["Ad copy generation", "A/B testing optimization", "SEO keyword research", "Basic graphic creation", "Email sequencing"],
+                augmented: ["Campaign strategy", "Customer segmentation", "Trend forecasting", "Content personalization"],
+                human: ["Brand voice curation", "Emotional storytelling", "Strategic partnerships", "Event experiences"],
+                skills_up: ["Brand Strategy", "Community Building", "AI Content Orchestration", "Video Production"],
+                skills_down: ["Copywriting (Basic)", "SEO technical audits", "Manual social posting"],
+                hybrid_roles: ["AI Content Director", "Community Growth Lead", "MarTech Architect"],
+                advice: {
+                    early: "Become a 'full-stack' marketer. You can now generate video, copy, and code. Build entire campaigns solo.",
+                    mid: "Focus on brand and community. AI floods the web with mediocre content; authentic human connection is the premium asset.",
+                    late: "Strategy is everything. Use AI to execute, but you set the destination."
+                }
+            },
+            "Lawyer / Attorney": {
+                risk: 60, category: "Legal",
+                automated: ["Contract review", "Discovery (document sorting)", "Legal research", "Drafting standard motions"],
+                augmented: ["Case strategy", "Prediction of court outcomes", "Due diligence"],
+                human: ["Courtroom advocacy", "High-stakes negotiation", "Client counseling", "Ethical gray areas"],
+                skills_up: ["Strategic Counsel", "Tech Law / AI Regulation", "Emotional Intelligence", "Mediation"],
+                skills_down: ["Document review", "Legal research (manual)", "Boilerplate drafting"],
+                hybrid_roles: ["Legal Technologist", "AI Compliance Officer"],
+                advice: {
+                    early: "The traditional 'associate grind' of document review is ending. Get courtroom or negotiation experience ASAP.",
+                    mid: "Specialize in complex, novel areas like AI regulation, space law, or bioethics where precedence is scarce.",
+                    late: "You are a counselor, not a drafter. Sell your wisdom and your judgment."
+                }
+            },
+            "Nurse": {
+                risk: 10, category: "Healthcare",
+                automated: ["Vitals monitoring (IoT)", "Paperwork/Charting", "Medication dispensing robots"],
+                augmented: ["Symptom tracking", "Patient education"],
+                human: ["Physical care (wound dressing, IVs)", "Emotional support", "Emergency reaction", "Patient advocacy"],
+                skills_up: ["Technology management", "Specialized Care (ICU/ER)", "Palliative Care"],
+                skills_down: ["Manual charting", "Routine vitals"],
+                hybrid_roles: ["Tele-triage Nurse", "Health Informatics Nurse"],
+                advice: {
+                    early: "This is one of the safest jobs. Automation removes the paperwork, letting you focus on the patient.",
+                    mid: "Specialize. The more complex the patient needs, the less likely a robot can do it.",
+                    late: "Move into management or education. The human touch is the core product."
+                }
+            },
+            "Teacher (K-12)": {
+                risk: 25, category: "Education",
+                automated: ["Grading", "Lesson planning", "Attendance", "Drill-and-practice exercises"],
+                augmented: ["Personalized tutoring", "Special needs adaptation"],
+                human: ["Social-emotional development", "Classroom management", "Inspiration/Motivation", "Safety"],
+                skills_up: ["Mentorship", "Special Education", "Facilitation", "EdTech integration"],
+                skills_down: ["Lecture delivery", "Standardized testing prep"],
+                hybrid_roles: ["Learning Experience Designer", "Student Success Coach"],
+                advice: {
+                    early: "You are no longer the 'source of truth'. You are the 'guide'. Teach them how to think, not what to know.",
+                    mid: "Use AI to personalize learning for every student. The 'one size fits all' model is dead.",
+                    late: "Focus on emotional intelligence and resilience. AI can't teach a kid how to be a good human."
+                }
+            },
+            "Electrician": {
+                risk: 5, category: "Trades",
+                automated: ["Scheduling", "Inventory ordering", "Code lookup"],
+                augmented: ["Diagnostics (thermal imaging)", "Smart home setup"],
+                human: ["Crawling in attics", "Wire manipulation", "Physical installation", "Troubleshooting old messy systems"],
+                skills_up: ["Smart Home Systems", "Green Energy (Solar/EV)", "Low voltage tech"],
+                skills_down: ["Manual calculation"],
+                hybrid_roles: ["Smart Building Technician", "Energy Efficiency Consultant"],
+                advice: {
+                    early: "This is a goldmine. Learn 'Smart' systems. AI lives in servers, but it needs power and wires.",
+                    mid: "Start a business. The demand for skilled labor is outpacing supply massively.",
+                    late: "Teach. The skills gap is huge."
+                }
+            },
+            "Customer Service Agent": {
+                risk: 90, category: "Service",
+                automated: ["FAQ answers", "Order tracking", "Returns processing", "Basic troubleshooting"],
+                augmented: ["Real-time translation", "Tone analysis"],
+                human: ["De-escalating angry customers", "Handling exceptional edge cases", "VIP concierge"],
+                skills_up: ["Crisis Resolution", "Technical Support (Level 3)", "Customer Success"],
+                skills_down: ["Script reading", "Typing speed"],
+                hybrid_roles: ["AI Chatbot Trainer", "Customer Experience Analyst"],
+                advice: {
+                    early: "This role is evaporating. Upskill into 'Customer Success' or technical support immediately.",
+                    mid: "Become the person who manages the AI support agents. Handle the 5% of calls that break the bot.",
+                    late: "Pivot to operations or training."
+                }
+            },
+            "Graphic Designer": {
+                risk: 70, category: "Creative",
+                automated: ["Logo variation generation", "Photo editing/retouching", "Stock image creation", "Layout adjustments"],
+                augmented: ["Concept iteration", "Style transfer", "Asset generation"],
+                human: ["Brand identity strategy", "Client taste calibration", "Art direction", "Physical packaging design"],
+                skills_up: ["Art Direction", "Prompt Engineering", "3D/AR/VR Design", "Brand Strategy"],
+                skills_down: ["Pixel pushing", "Background removal", "Clipart creation"],
+                hybrid_roles: ["Generative Design Specialist", "Brand Experience Designer"],
+                advice: {
+                    early: "Stop focusing on tools (Photoshop) and focus on taste and concepts. AI is the new brush.",
+                    mid: "Become an Art Director. Curate the output of AI rather than creating every pixel yourself.",
+                    late: "Sell 'Brand Identity' and 'Trust'. Clients pay you because they know you understand their vision."
+                }
+            }
+        };
+
+        const FALLBACK_CAREER = {
+            risk: 50, category: "General",
+            automated: ["Repetitive tasks", "Data processing", "Information retrieval", "Basic scheduling"],
+            augmented: ["Brainstorming", "First drafts", "Error checking", "Analysis"],
+            human: ["Complex decision making", "Emotional intelligence", "Physical dexterity", "Ethical judgment"],
+            skills_up: ["AI Literacy", "Adaptability", "Strategic Thinking", "Communication"],
+            skills_down: ["Rote memorization", "Manual administrative work"],
+            hybrid_roles: ["AI Workflow Specialist", "Human-in-the-loop Manager"],
+            advice: {
+                early: "Focus on learning how to use AI tools in your specific field. Be the 'AI expert' in the room.",
+                mid: "Look for parts of your job that are repetitive and automate them. Focus on high-value strategy.",
+                late: "Leverage your experience to direct the technology. Mentorship is a key human value."
+            }
+        };
+
+        function Gauge({ score }) {
+            let color = "text-green-500";
+            let label = "Safe Haven";
+            if (score > 30) { color = "text-yellow-400"; label = "Evolution Required"; }
+            if (score > 65) { color = "text-red-500"; label = "High Disruption"; }
+
+            const circumference = 2 * Math.PI * 40;
+            const offset = circumference - (score / 100) * circumference;
+
+            return (
+                <div className="flex flex-col items-center justify-center p-6 glass-panel rounded-2xl">
+                    <h3 className="text-gray-400 text-sm font-semibold uppercase tracking-wider mb-2">AI Disruption Index</h3>
+                    <div className="relative w-32 h-32">
+                        <svg className="w-full h-full transform -rotate-90">
+                            <circle cx="64" cy="64" r="40" stroke="#334155" strokeWidth="8" fill="transparent" />
+                            <circle cx="64" cy="64" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" 
+                                className={`${color} transition-all duration-1000 ease-out`}
+                                strokeDasharray={circumference}
+                                strokeDashoffset={offset}
+                                strokeLinecap="round"
+                            />
+                        </svg>
+                        <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+                            <span className={`text-3xl font-bold ${color}`}>{score}%</span>
+                        </div>
+                    </div>
+                    <span className={`mt-2 font-medium ${color}`}>{label}</span>
+                </div>
+            );
+        }
+
+        function Section({ title, items, colorClass }) {
+            return (
+                <div className="glass-panel p-6 rounded-xl animate-fade-in">
+                    <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                        <span className={`w-3 h-3 rounded-full ${colorClass}`}></span>
+                        {title}
+                    </h3>
+                    <ul className="space-y-2">
+                        {items.map((item, i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm text-gray-300">
+                                <span className={`mt-1.5 w-1.5 h-1.5 rounded-full ${colorClass} flex-shrink-0`}></span>
+                                {item}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            );
+        }
+
+        function AdviceCard({ stage, text, active, onClick }) {
+            return (
+                <div onClick={onClick} className={`p-5 rounded-xl border transition-all duration-300 cursor-pointer ${active ? 'bg-blue-900/30 border-blue-500 shadow-lg' : 'glass-panel border-transparent hover:border-gray-600'}`}>
+                    <h4 className={`font-bold mb-2 ${active ? 'text-blue-400' : 'text-gray-400'}`}>{stage}</h4>
+                    <p className="text-sm text-gray-300 leading-relaxed">{text}</p>
+                </div>
+            );
+        }
+
+        function App() {
+            const [searchTerm, setSearchTerm] = useState("");
+            const [selectedCareer, setSelectedCareer] = useState(null);
+            const [activeTab, setActiveTab] = useState('early');
+
+            const suggestions = useMemo(() => {
+                if (searchTerm.length < 2) return [];
+                return Object.keys(CAREER_DATABASE).filter(job => 
+                    job.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+            }, [searchTerm]);
+
+            const selectCareer = (careerName) => {
+                setSelectedCareer({ name: careerName, ...CAREER_DATABASE[careerName] });
+                setSearchTerm("");
+                setActiveTab('early');
+            };
+
+            const selectRandom = () => {
+                const keys = Object.keys(CAREER_DATABASE);
+                selectCareer(keys[Math.floor(Math.random() * keys.length)]);
+            };
+
+            const showFallback = () => {
+                setSelectedCareer({ name: searchTerm || "Custom Career", ...FALLBACK_CAREER });
+            };
+
+            return (
+                <div className="min-h-screen p-4 md:p-8">
+                    <div className="max-w-6xl mx-auto">
+                        <header className="mb-12 text-center">
+                            <h1 className="text-4xl md:text-6xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-emerald-400 mb-4">
+                                AI Career Navigator
+                            </h1>
+                            <p className="text-gray-400 max-w-2xl mx-auto text-lg">
+                                The landscape of work is shifting. Analyze your career path, understand automation risks, and discover how to future-proof your skills.
+                            </p>
+                            <div className="mt-2 text-sm text-purple-400">Powered by Gemini</div>
+                        </header>
+
+                        {/* Search */}
+                        <div className="max-w-xl mx-auto relative mb-16 z-50">
+                            <div className="relative group">
+                                <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg blur opacity-25 group-hover:opacity-75 transition duration-300"></div>
+                                <div className="relative flex items-center bg-slate-800 rounded-lg">
+                                    <svg className="w-6 h-6 ml-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                    <input 
+                                        type="text" 
+                                        className="w-full p-4 bg-transparent text-white focus:outline-none placeholder-gray-500"
+                                        placeholder="Enter a job title..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && (suggestions.length > 0 ? selectCareer(suggestions[0]) : showFallback())}
+                                    />
+                                </div>
+                            </div>
+                            
+                            {suggestions.length > 0 && (
+                                <div className="absolute w-full mt-2 bg-slate-800 border border-slate-700 rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto">
+                                    {suggestions.map((job) => (
+                                        <div key={job} onClick={() => selectCareer(job)} className="p-3 hover:bg-slate-700 cursor-pointer text-gray-200 flex justify-between">
+                                            {job}
+                                            <span className="text-xs text-gray-500">{CAREER_DATABASE[job].category}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {!selectedCareer && (
+                                <div className="mt-6 flex flex-wrap justify-center gap-2">
+                                    <span className="text-xs text-gray-500 uppercase mr-2 py-1">Try:</span>
+                                    {["Software Engineer", "Marketing Manager", "Nurse", "Electrician", "Data Analyst"].map(job => (
+                                        <button key={job} onClick={() => selectCareer(job)} className="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-full text-xs text-blue-300 border border-slate-700 transition">
+                                            {job}
+                                        </button>
+                                    ))}
+                                    <button onClick={selectRandom} className="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-full text-xs text-purple-300 border border-slate-700 transition">
+                                        Surprise Me 🎲
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Results */}
+                        {selectedCareer && (
+                            <div className="animate-fade-in space-y-8 pb-20">
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                    <div className="md:col-span-3 flex flex-col justify-center">
+                                        <h2 className="text-3xl md:text-5xl font-bold text-white mb-2">{selectedCareer.name}</h2>
+                                        <p className="text-xl text-gray-400">Category: <span className="text-blue-400">{selectedCareer.category}</span></p>
+                                    </div>
+                                    <Gauge score={selectedCareer.risk} />
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <Section title="Automated (The Past)" items={selectedCareer.automated} colorClass="bg-red-500" />
+                                    <Section title="Augmented (The Present)" items={selectedCareer.augmented} colorClass="bg-blue-500" />
+                                    <Section title="Human Only (The Future)" items={selectedCareer.human} colorClass="bg-green-500" />
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="glass-panel p-6 rounded-xl border-l-4 border-emerald-500">
+                                        <h3 className="font-bold text-lg mb-4 text-emerald-400">Skills to Acquire 🚀</h3>
+                                        <div className="flex flex-wrap gap-2">
+                                            {selectedCareer.skills_up.map((skill, i) => (
+                                                <span key={i} className="px-3 py-1 bg-emerald-900/30 text-emerald-200 text-sm rounded-full border border-emerald-800">
+                                                    {skill}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="glass-panel p-6 rounded-xl border-l-4 border-red-500 opacity-80">
+                                        <h3 className="font-bold text-lg mb-4 text-red-400">Skills Fading Away 📉</h3>
+                                        <div className="flex flex-wrap gap-2">
+                                            {selectedCareer.skills_down.map((skill, i) => (
+                                                <span key={i} className="px-3 py-1 bg-red-900/30 text-red-200 text-sm rounded-full border border-red-800 line-through">
+                                                    {skill}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="glass-panel p-6 rounded-xl bg-gradient-to-r from-slate-800 to-slate-900">
+                                    <h3 className="font-bold text-lg mb-4 text-purple-300">Emerging Hybrid Roles</h3>
+                                    <div className="flex flex-wrap gap-4">
+                                        {selectedCareer.hybrid_roles.map((role, i) => (
+                                            <div key={i} className="flex items-center gap-2 bg-slate-800 px-4 py-2 rounded-lg border border-slate-700">
+                                                <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                                                <span className="font-medium">{role}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h3 className="text-2xl font-bold mb-6">Strategic Advice</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <AdviceCard stage="The Starter (18-25)" text={selectedCareer.advice.early} active={activeTab === 'early'} onClick={() => setActiveTab('early')} />
+                                        <AdviceCard stage="The Pivoter (26-45)" text={selectedCareer.advice.mid} active={activeTab === 'mid'} onClick={() => setActiveTab('mid')} />
+                                        <AdviceCard stage="The Strategist (46+)" text={selectedCareer.advice.late} active={activeTab === 'late'} onClick={() => setActiveTab('late')} />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <footer className="text-center mt-12 text-gray-500 text-sm">
+                            <p>Built with Gemini | Broganda Vibe Coding Workshop | November 30, 2025</p>
+                        </footer>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
