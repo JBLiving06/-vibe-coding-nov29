@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EdSolutions Market Signals Observatory | USLT 2030→2045</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['IBM Plex Mono', 'monospace']
+                    },
+                    colors: {
+                        observatory: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                            950: '#082f49'
+                        },
+                        signal: {
+                            green: '#10b981',
+                            yellow: '#f59e0b',
+                            red: '#ef4444',
+                            blue: '#3b82f6',
+                            purple: '#8b5cf6'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #0c4a6e 0%, #082f49 50%, #0f172a 100%);
+        }
+        .card-gradient {
+            background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
+        }
+        .signal-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .trend-up { color: #10b981; }
+        .trend-down { color: #ef4444; }
+        .trend-neutral { color: #f59e0b; }
+        .confidence-high { background: linear-gradient(90deg, #10b981 0%, #10b981 var(--confidence), #1e293b var(--confidence)); }
+        .confidence-medium { background: linear-gradient(90deg, #f59e0b 0%, #f59e0b var(--confidence), #1e293b var(--confidence)); }
+        .confidence-low { background: linear-gradient(90deg, #ef4444 0%, #ef4444 var(--confidence), #1e293b var(--confidence)); }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .metric-bar {
+            transition: width 0.5s ease-out;
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen font-sans text-white">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        // ============================================================
+        // DATA: Signal Families, Priorities, and Sample Metrics
+        // ============================================================
+
+        const SIGNAL_FAMILIES = [
+            {
+                id: 'supply',
+                name: 'Supply Maturity',
+                icon: '📦',
+                description: 'Number and characteristics of fit-for-purpose solutions; price bands and cost curves; interoperability; evidence posture; alignment to quality frameworks.',
+                color: 'bg-blue-500',
+                metrics: ['Solution Count', 'Price Band ($)', 'Evidence Score', 'Interoperability Index']
+            },
+            {
+                id: 'demand',
+                name: 'Demand & Adoption',
+                icon: '📈',
+                description: 'RFP volume and language; procurement wins; implementation starts; usage intensity; educator and student satisfaction; time-to-value.',
+                color: 'bg-green-500',
+                metrics: ['RFP Volume', 'Procurement Wins', 'Usage Intensity', 'Satisfaction Score']
+            },
+            {
+                id: 'policy',
+                name: 'Policy & Public Funding',
+                icon: '🏛️',
+                description: 'Rule changes; articulation/transfer policies; assessment regimes; appropriation lines and competitive funds; policy-to-procurement conversion rate.',
+                color: 'bg-purple-500',
+                metrics: ['Policy Changes', 'Appropriations ($M)', 'Conversion Rate', 'State Progress']
+            },
+            {
+                id: 'capacity',
+                name: 'Capacity to Implement',
+                icon: '⚙️',
+                description: 'District/provider readiness; staffing; integration burden; change-management friction; partner ecosystems.',
+                color: 'bg-orange-500',
+                metrics: ['Readiness Score', 'Staffing Index', 'Integration Burden', 'Partner Density']
+            },
+            {
+                id: 'cadence',
+                name: 'Cadence',
+                icon: '⏱️',
+                description: 'Adoption cycle length by segment; seasonality; renewal/churn dynamics.',
+                color: 'bg-cyan-500',
+                metrics: ['Cycle Length (mo)', 'Renewal Rate', 'Churn Rate', 'Seasonality Index']
+            },
+            {
+                id: 'competition',
+                name: 'Competition & Substitution',
+                icon: '🎯',
+                description: 'Share of mind and wallet; switching costs; incumbent defenses; category formation.',
+                color: 'bg-red-500',
+                metrics: ['Market Share', 'Switching Cost', 'Category Maturity', 'Competitor Count']
+            },
+            {
+                id: 'equity',
+                name: 'Equity & Access',
+                icon: '⚖️',
+                description: 'Disaggregated adoption and usage; unit cost versus total cost of ownership; accessibility standards; language availability; network effects that exclude.',
+                color: 'bg-pink-500',
+                metrics: ['Access Gap Index', 'Cost Equity Ratio', 'Language Coverage', 'Accessibility Score']
+            }
+        ];
+
+        const USLT_PRIORITIES = [
+            {
+                id: 'math',
+                name: 'Math Pathways',
+                shortName: 'Math',
+                description: 'Transforming mathematics education pathways for equitable student success',
+                color: 'from-blue-600 to-blue-800',
+                icon: '📐'
+            },
+            {
+                id: 'literacy',
+                name: 'Literacy Foundations',
+                shortName: 'Literacy',
+                description: 'Building strong literacy foundations through evidence-based instruction',
+                color: 'from-green-600 to-green-800',
+                icon: '📚'
+            },
+            {
+                id: 'postsecondary',
+                name: 'Postsecondary Success',
+                shortName: 'Postsec',
+                description: 'Ensuring successful transitions and completion in postsecondary education',
+                color: 'from-purple-600 to-purple-800',
+                icon: '🎓'
+            },
+            {
+                id: 'workforce',
+                name: 'Workforce Readiness',
+                shortName: 'Workforce',
+                description: 'Preparing learners for meaningful employment and career advancement',
+                color: 'from-orange-600 to-orange-800',
+                icon: '💼'
+            }
+        ];
+
+        const CAPITAL_FLOW_TYPES = [
+            { id: 'philanthropy', name: 'Philanthropy', icon: '🤝', color: 'bg-emerald-500' },
+            { id: 'public', name: 'Public Sector', icon: '🏛️', color: 'bg-blue-500' },
+            { id: 'private', name: 'Private Markets', icon: '💰', color: 'bg-amber-500' }
+        ];
+
+        // Generate sample data for demonstration
+        const generateSignalData = (priorityId, signalId) => {
+            const seed = (priorityId + signalId).split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+            const random = (min, max) => {
+                const x = Math.sin(seed * 9999) * 10000;
+                return Math.floor((x - Math.floor(x)) * (max - min + 1)) + min;
+            };
+
+            const baseValue = random(30, 90);
+            const trend = ['up', 'down', 'neutral'][random(0, 2)];
+            const trendValue = trend === 'up' ? random(5, 25) : trend === 'down' ? -random(5, 20) : random(-3, 3);
+            const confidence = random(60, 95);
+
+            return {
+                value: baseValue,
+                trend,
+                trendValue,
+                confidence,
+                lastUpdated: new Date(Date.now() - random(1, 30) * 24 * 60 * 60 * 1000).toLocaleDateString(),
+                source: ['District Survey', 'RFP Analysis', 'Vendor Data', 'Policy Tracker', 'Panel Data'][random(0, 4)]
+            };
+        };
+
+        const generateCapitalFlowData = (priorityId, flowType) => {
+            const seed = (priorityId + flowType).split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+            const random = (min, max) => {
+                const x = Math.sin(seed * 7777) * 10000;
+                return Math.floor((x - Math.floor(x)) * (max - min + 1)) + min;
+            };
+
+            const quarters = ['Q1 2024', 'Q2 2024', 'Q3 2024', 'Q4 2024', 'Q1 2025'];
+            const baseAmount = flowType === 'philanthropy' ? random(50, 200) :
+                              flowType === 'public' ? random(100, 500) : random(20, 150);
+
+            return {
+                current: baseAmount,
+                previousQuarter: baseAmount - random(-30, 30),
+                ytd: baseAmount * 3.2,
+                coInvestmentMultiplier: (random(15, 45) / 10).toFixed(1),
+                trend: ['up', 'down', 'neutral'][random(0, 2)],
+                quarters: quarters.map((q, i) => ({
+                    quarter: q,
+                    amount: baseAmount * (0.7 + i * 0.15 + (random(-10, 10) / 100))
+                }))
+            };
+        };
+
+        // ============================================================
+        // COMPONENTS
+        // ============================================================
+
+        // Confidence Score Badge
+        const ConfidenceBadge = ({ score }) => {
+            const level = score >= 80 ? 'high' : score >= 60 ? 'medium' : 'low';
+            const colors = {
+                high: 'bg-green-500/20 text-green-400 border-green-500/30',
+                medium: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+                low: 'bg-red-500/20 text-red-400 border-red-500/30'
+            };
+
+            return (
+                <span className={`px-2 py-0.5 rounded-full text-xs font-mono border ${colors[level]}`}>
+                    {score}% conf.
+                </span>
+            );
+        };
+
+        // Trend Indicator
+        const TrendIndicator = ({ trend, value }) => {
+            const icons = { up: '↑', down: '↓', neutral: '→' };
+            const colors = { up: 'text-green-400', down: 'text-red-400', neutral: 'text-yellow-400' };
+
+            return (
+                <span className={`flex items-center gap-1 ${colors[trend]} font-mono text-sm`}>
+                    <span>{icons[trend]}</span>
+                    <span>{value > 0 ? '+' : ''}{value}%</span>
+                </span>
+            );
+        };
+
+        // Signal Family Card
+        const SignalFamilyCard = ({ family, priority, onClick, isSelected }) => {
+            const data = useMemo(() => generateSignalData(priority, family.id), [priority, family.id]);
+
+            return (
+                <div
+                    onClick={onClick}
+                    className={`glass-card rounded-xl p-4 cursor-pointer transition-all duration-300 hover:scale-[1.02] ${
+                        isSelected ? 'ring-2 ring-observatory-400' : ''
+                    }`}
+                >
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                            <span className="text-2xl">{family.icon}</span>
+                            <h3 className="font-semibold text-sm">{family.name}</h3>
+                        </div>
+                        <ConfidenceBadge score={data.confidence} />
+                    </div>
+
+                    <div className="flex items-end justify-between">
+                        <div>
+                            <div className="text-3xl font-bold text-white">{data.value}</div>
+                            <div className="text-xs text-gray-400 mt-1">Composite Index</div>
+                        </div>
+                        <TrendIndicator trend={data.trend} value={data.trendValue} />
+                    </div>
+
+                    <div className="mt-3 pt-3 border-t border-white/10">
+                        <div className="flex justify-between text-xs text-gray-400">
+                            <span>Source: {data.source}</span>
+                            <span>{data.lastUpdated}</span>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Capital Flow Chart (Mini Bar Chart)
+        const CapitalFlowChart = ({ data, color }) => {
+            const maxAmount = Math.max(...data.quarters.map(q => q.amount));
+
+            return (
+                <div className="flex items-end gap-1 h-16">
+                    {data.quarters.map((q, i) => (
+                        <div key={q.quarter} className="flex-1 flex flex-col items-center">
+                            <div
+                                className={`w-full ${color} rounded-t opacity-${60 + i * 10} transition-all duration-500`}
+                                style={{ height: `${(q.amount / maxAmount) * 100}%` }}
+                            />
+                            <span className="text-[10px] text-gray-500 mt-1">{q.quarter.split(' ')[0]}</span>
+                        </div>
+                    ))}
+                </div>
+            );
+        };
+
+        // Capital Flow Card
+        const CapitalFlowCard = ({ flowType, priority }) => {
+            const data = useMemo(() => generateCapitalFlowData(priority, flowType.id), [priority, flowType.id]);
+            const trendColors = { up: 'text-green-400', down: 'text-red-400', neutral: 'text-yellow-400' };
+
+            return (
+                <div className="glass-card rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                        <span className="text-xl">{flowType.icon}</span>
+                        <h4 className="font-semibold">{flowType.name}</h4>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <div className="text-2xl font-bold">${data.current}M</div>
+                            <div className="text-xs text-gray-400">Current Quarter</div>
+                        </div>
+                        <div>
+                            <div className="text-2xl font-bold">${data.ytd.toFixed(0)}M</div>
+                            <div className="text-xs text-gray-400">YTD Total</div>
+                        </div>
+                    </div>
+
+                    <CapitalFlowChart data={data} color={flowType.color} />
+
+                    <div className="mt-4 pt-3 border-t border-white/10 flex justify-between items-center">
+                        <div className="text-xs">
+                            <span className="text-gray-400">Co-investment: </span>
+                            <span className="font-mono text-observatory-300">{data.coInvestmentMultiplier}x</span>
+                        </div>
+                        <span className={`text-xs ${trendColors[data.trend]}`}>
+                            {data.trend === 'up' ? '↑ Growing' : data.trend === 'down' ? '↓ Declining' : '→ Stable'}
+                        </span>
+                    </div>
+                </div>
+            );
+        };
+
+        // Metric Detail Row
+        const MetricDetailRow = ({ name, value, unit, confidence, trend, source }) => (
+            <div className="flex items-center justify-between py-3 border-b border-white/5 last:border-0">
+                <div className="flex-1">
+                    <div className="font-medium text-sm">{name}</div>
+                    <div className="text-xs text-gray-500">Source: {source}</div>
+                </div>
+                <div className="flex items-center gap-4">
+                    <div className="text-right">
+                        <div className="font-mono font-bold">{value}{unit}</div>
+                    </div>
+                    <TrendIndicator trend={trend} value={Math.floor(Math.random() * 20 - 5)} />
+                    <ConfidenceBadge score={confidence} />
+                </div>
+            </div>
+        );
+
+        // Priority Tab
+        const PriorityTab = ({ priority, isActive, onClick }) => (
+            <button
+                onClick={onClick}
+                className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 flex items-center gap-2 ${
+                    isActive
+                        ? `bg-gradient-to-r ${priority.color} text-white shadow-lg`
+                        : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
+                }`}
+            >
+                <span>{priority.icon}</span>
+                <span>{priority.shortName}</span>
+            </button>
+        );
+
+        // Threshold Alert
+        const ThresholdAlert = ({ type, message, action }) => {
+            const styles = {
+                warning: 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400',
+                success: 'bg-green-500/10 border-green-500/30 text-green-400',
+                danger: 'bg-red-500/10 border-red-500/30 text-red-400'
+            };
+
+            return (
+                <div className={`rounded-lg p-3 border ${styles[type]} mb-2`}>
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <div className="font-medium text-sm">{message}</div>
+                            <div className="text-xs mt-1 opacity-80">Recommended: {action}</div>
+                        </div>
+                        <span className="text-lg">{type === 'success' ? '✓' : type === 'warning' ? '⚠' : '!'}</span>
+                    </div>
+                </div>
+            );
+        };
+
+        // Equity Disaggregation Panel
+        const EquityPanel = ({ priority }) => {
+            const segments = [
+                { name: 'Urban Districts', adoption: 78, access: 82, cost: 65 },
+                { name: 'Rural Districts', adoption: 45, access: 52, cost: 48 },
+                { name: 'Title I Schools', adoption: 62, access: 58, cost: 72 },
+                { name: 'English Learners', adoption: 41, access: 45, cost: 55 },
+                { name: 'Students w/ Disabilities', adoption: 38, access: 42, cost: 61 }
+            ];
+
+            return (
+                <div className="glass-card rounded-xl p-5">
+                    <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                        <span>⚖️</span> Equity Disaggregation
+                    </h3>
+
+                    <div className="space-y-4">
+                        {segments.map(segment => (
+                            <div key={segment.name} className="space-y-2">
+                                <div className="flex justify-between text-sm">
+                                    <span className="font-medium">{segment.name}</span>
+                                    <span className="text-gray-400">Gap Index: {Math.abs(segment.adoption - 78)}</span>
+                                </div>
+                                <div className="grid grid-cols-3 gap-2">
+                                    <div>
+                                        <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                            <div className="h-full bg-blue-500 metric-bar" style={{ width: `${segment.adoption}%` }} />
+                                        </div>
+                                        <div className="text-xs text-gray-500 mt-1">Adoption {segment.adoption}%</div>
+                                    </div>
+                                    <div>
+                                        <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                            <div className="h-full bg-green-500 metric-bar" style={{ width: `${segment.access}%` }} />
+                                        </div>
+                                        <div className="text-xs text-gray-500 mt-1">Access {segment.access}%</div>
+                                    </div>
+                                    <div>
+                                        <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                            <div className="h-full bg-purple-500 metric-bar" style={{ width: `${segment.cost}%` }} />
+                                        </div>
+                                        <div className="text-xs text-gray-500 mt-1">Cost Equity {segment.cost}%</div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        // Monthly Brief Summary
+        const MonthlyBriefSummary = ({ priority }) => {
+            const briefs = {
+                math: {
+                    moved: 'RFP volume up 23% with increased specificity around evidence requirements',
+                    noise: 'Short-term dip in vendor count (seasonal, Q4 pattern)',
+                    watch: 'Three states advancing aligned policy; conversion rate TBD',
+                    threshold: { crossed: true, message: 'Aligned capital inflows doubled for 2nd consecutive quarter' }
+                },
+                literacy: {
+                    moved: 'Science of reading adoption reached 65% in surveyed districts',
+                    noise: 'Price variance high but driven by bundling changes',
+                    watch: 'Federal appropriations committee markup scheduled',
+                    threshold: { crossed: false, message: 'Approaching median price target ($12/learner)' }
+                },
+                postsecondary: {
+                    moved: 'Transfer credit acceptance up 18% at partner institutions',
+                    noise: 'Enrollment fluctuations not signal-bearing this quarter',
+                    watch: 'Three registrar system vendors adding interoperability features',
+                    threshold: { crossed: true, message: 'Policy-to-procurement conversion exceeded 40%' }
+                },
+                workforce: {
+                    moved: 'Employer co-investment commitments up 31%',
+                    noise: 'Job posting data volatile (macro factors)',
+                    watch: 'Credential transparency legislation in 5 states',
+                    threshold: { crossed: false, message: 'Nearing implementation readiness threshold' }
+                }
+            };
+
+            const brief = briefs[priority] || briefs.math;
+
+            return (
+                <div className="glass-card rounded-xl p-5">
+                    <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                        <span>📋</span> Monthly Signal Brief
+                    </h3>
+
+                    <div className="space-y-4">
+                        <div>
+                            <div className="text-xs text-green-400 font-semibold uppercase tracking-wider mb-1">What Moved</div>
+                            <p className="text-sm text-gray-300">{brief.moved}</p>
+                        </div>
+                        <div>
+                            <div className="text-xs text-yellow-400 font-semibold uppercase tracking-wider mb-1">Likely Noise</div>
+                            <p className="text-sm text-gray-300">{brief.noise}</p>
+                        </div>
+                        <div>
+                            <div className="text-xs text-blue-400 font-semibold uppercase tracking-wider mb-1">Watch Next</div>
+                            <p className="text-sm text-gray-300">{brief.watch}</p>
+                        </div>
+
+                        {brief.threshold.crossed ? (
+                            <ThresholdAlert
+                                type="success"
+                                message={brief.threshold.message}
+                                action="Consider double-down investment"
+                            />
+                        ) : (
+                            <ThresholdAlert
+                                type="warning"
+                                message={brief.threshold.message}
+                                action="Continue monitoring; prepare contingency"
+                            />
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // Reach Ladder Visualization
+        const ReachLadder = ({ priority }) => {
+            const stages = [
+                { name: 'Awareness', value: 85, target: 90 },
+                { name: 'Interest', value: 72, target: 80 },
+                { name: 'Evaluation', value: 58, target: 70 },
+                { name: 'Trial', value: 41, target: 55 },
+                { name: 'Adoption', value: 28, target: 45 },
+                { name: 'Scale', value: 12, target: 30 }
+            ];
+
+            return (
+                <div className="glass-card rounded-xl p-5">
+                    <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                        <span>📊</span> Reach Ladder
+                    </h3>
+
+                    <div className="space-y-3">
+                        {stages.map((stage, i) => (
+                            <div key={stage.name} className="space-y-1">
+                                <div className="flex justify-between text-sm">
+                                    <span>{stage.name}</span>
+                                    <span className="font-mono">
+                                        {stage.value}%
+                                        <span className="text-gray-500 text-xs ml-1">(target: {stage.target}%)</span>
+                                    </span>
+                                </div>
+                                <div className="h-3 bg-gray-700 rounded-full overflow-hidden relative">
+                                    <div
+                                        className="h-full bg-gradient-to-r from-observatory-500 to-observatory-400 metric-bar rounded-full"
+                                        style={{ width: `${stage.value}%` }}
+                                    />
+                                    <div
+                                        className="absolute top-0 bottom-0 w-0.5 bg-white/50"
+                                        style={{ left: `${stage.target}%` }}
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-white/10 text-xs text-gray-400">
+                        White markers indicate 2030 targets
+                    </div>
+                </div>
+            );
+        };
+
+        // Navigation
+        const Navigation = ({ currentView, setCurrentView }) => (
+            <nav className="flex items-center gap-1 bg-white/5 rounded-lg p-1">
+                {[
+                    { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+                    { id: 'capital', label: 'Capital Flows', icon: '💰' },
+                    { id: 'signals', label: 'Signal Deep Dive', icon: '🔍' },
+                    { id: 'briefs', label: 'Briefs & Memos', icon: '📋' }
+                ].map(view => (
+                    <button
+                        key={view.id}
+                        onClick={() => setCurrentView(view.id)}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${
+                            currentView === view.id
+                                ? 'bg-observatory-600 text-white'
+                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        }`}
+                    >
+                        <span>{view.icon}</span>
+                        <span className="hidden sm:inline">{view.label}</span>
+                    </button>
+                ))}
+            </nav>
+        );
+
+        // Header
+        const Header = ({ currentView, setCurrentView }) => (
+            <header className="border-b border-white/10 bg-black/20 backdrop-blur-lg sticky top-0 z-50">
+                <div className="max-w-7xl mx-auto px-4 py-4">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-gradient-to-br from-observatory-400 to-observatory-600 rounded-lg flex items-center justify-center">
+                                    <span className="text-xl">🔭</span>
+                                </div>
+                                <div>
+                                    <h1 className="text-xl font-bold">Market Signals Observatory</h1>
+                                    <p className="text-xs text-gray-400">EdSolutions | USLT 2030→2045</p>
+                                </div>
+                            </div>
+                        </div>
+                        <Navigation currentView={currentView} setCurrentView={setCurrentView} />
+                    </div>
+                </div>
+            </header>
+        );
+
+        // Dashboard View
+        const DashboardView = ({ activePriority, setActivePriority, selectedSignal, setSelectedSignal }) => (
+            <div className="space-y-6">
+                {/* Priority Tabs */}
+                <div className="flex flex-wrap gap-2">
+                    {USLT_PRIORITIES.map(priority => (
+                        <PriorityTab
+                            key={priority.id}
+                            priority={priority}
+                            isActive={activePriority === priority.id}
+                            onClick={() => setActivePriority(priority.id)}
+                        />
+                    ))}
+                </div>
+
+                {/* Priority Description */}
+                <div className="glass-card rounded-xl p-4">
+                    <div className="flex items-center gap-3">
+                        <span className="text-3xl">
+                            {USLT_PRIORITIES.find(p => p.id === activePriority)?.icon}
+                        </span>
+                        <div>
+                            <h2 className="font-semibold text-lg">
+                                {USLT_PRIORITIES.find(p => p.id === activePriority)?.name}
+                            </h2>
+                            <p className="text-sm text-gray-400">
+                                {USLT_PRIORITIES.find(p => p.id === activePriority)?.description}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Signal Families Grid */}
+                <div>
+                    <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <span>📡</span> Signal Families Instrument Panel
+                    </h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {SIGNAL_FAMILIES.map(family => (
+                            <SignalFamilyCard
+                                key={family.id}
+                                family={family}
+                                priority={activePriority}
+                                isSelected={selectedSignal === family.id}
+                                onClick={() => setSelectedSignal(selectedSignal === family.id ? null : family.id)}
+                            />
+                        ))}
+                    </div>
+                </div>
+
+                {/* Bottom Grid: Reach Ladder + Monthly Brief + Equity */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <ReachLadder priority={activePriority} />
+                    <MonthlyBriefSummary priority={activePriority} />
+                    <EquityPanel priority={activePriority} />
+                </div>
+            </div>
+        );
+
+        // Capital Flows View
+        const CapitalFlowsView = ({ activePriority, setActivePriority }) => {
+            const totalFlows = useMemo(() => {
+                const flows = CAPITAL_FLOW_TYPES.map(type =>
+                    generateCapitalFlowData(activePriority, type.id)
+                );
+                return {
+                    current: flows.reduce((sum, f) => sum + f.current, 0),
+                    ytd: flows.reduce((sum, f) => sum + f.ytd, 0),
+                    avgMultiplier: (flows.reduce((sum, f) => sum + parseFloat(f.coInvestmentMultiplier), 0) / 3).toFixed(1)
+                };
+            }, [activePriority]);
+
+            return (
+                <div className="space-y-6">
+                    {/* Priority Tabs */}
+                    <div className="flex flex-wrap gap-2">
+                        {USLT_PRIORITIES.map(priority => (
+                            <PriorityTab
+                                key={priority.id}
+                                priority={priority}
+                                isActive={activePriority === priority.id}
+                                onClick={() => setActivePriority(priority.id)}
+                            />
+                        ))}
+                    </div>
+
+                    {/* Summary Stats */}
+                    <div className="glass-card rounded-xl p-6">
+                        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <span>💰</span> Capital Flows Summary - {USLT_PRIORITIES.find(p => p.id === activePriority)?.name}
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="text-center p-4 bg-white/5 rounded-lg">
+                                <div className="text-4xl font-bold text-observatory-400">${totalFlows.current}M</div>
+                                <div className="text-sm text-gray-400 mt-1">Current Quarter Total</div>
+                            </div>
+                            <div className="text-center p-4 bg-white/5 rounded-lg">
+                                <div className="text-4xl font-bold text-green-400">${totalFlows.ytd.toFixed(0)}M</div>
+                                <div className="text-sm text-gray-400 mt-1">Year-to-Date Total</div>
+                            </div>
+                            <div className="text-center p-4 bg-white/5 rounded-lg">
+                                <div className="text-4xl font-bold text-amber-400">{totalFlows.avgMultiplier}x</div>
+                                <div className="text-sm text-gray-400 mt-1">Avg Co-Investment Multiplier</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Capital Flow Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {CAPITAL_FLOW_TYPES.map(flowType => (
+                            <CapitalFlowCard
+                                key={flowType.id}
+                                flowType={flowType}
+                                priority={activePriority}
+                            />
+                        ))}
+                    </div>
+
+                    {/* Capital Flows Interpretation */}
+                    <div className="glass-card rounded-xl p-6">
+                        <h3 className="font-semibold text-lg mb-4">Interpretation Guidelines</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                            <div>
+                                <h4 className="font-medium text-emerald-400 mb-2">🤝 Philanthropy</h4>
+                                <p className="text-gray-400">
+                                    Peer commitments, co-funding density by region/domain, time-to-follow-on after Foundation signals.
+                                    Key metric: Co-investment multiplier (external $ mobilized per Foundation $).
+                                </p>
+                            </div>
+                            <div>
+                                <h4 className="font-medium text-blue-400 mb-2">🏛️ Public Sector</h4>
+                                <p className="text-gray-400">
+                                    Budget lines, implementation grants, regulatory enables.
+                                    Key metric: Policy-to-procurement conversion rate and state progress maps.
+                                </p>
+                            </div>
+                            <div>
+                                <h4 className="font-medium text-amber-400 mb-2">💰 Private Markets</h4>
+                                <p className="text-gray-400">
+                                    Venture/growth investment, M&A, and category capitalization curves.
+                                    Key metric: Price/quality compression as markets mature.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                            <p className="text-sm text-yellow-400">
+                                <strong>Note:</strong> Capital flows are never read in isolation. Every dollar trend is paired with adoption, quality, and equity metrics to avoid the trap where hype masquerades as progress.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Signal Deep Dive View
+        const SignalDeepDiveView = ({ activePriority, setActivePriority }) => {
+            const [selectedFamily, setSelectedFamily] = useState('supply');
+            const family = SIGNAL_FAMILIES.find(f => f.id === selectedFamily);
+
+            return (
+                <div className="space-y-6">
+                    {/* Priority Tabs */}
+                    <div className="flex flex-wrap gap-2">
+                        {USLT_PRIORITIES.map(priority => (
+                            <PriorityTab
+                                key={priority.id}
+                                priority={priority}
+                                isActive={activePriority === priority.id}
+                                onClick={() => setActivePriority(priority.id)}
+                            />
+                        ))}
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        {/* Signal Family Selector */}
+                        <div className="glass-card rounded-xl p-4">
+                            <h3 className="font-semibold mb-4">Signal Families</h3>
+                            <div className="space-y-2">
+                                {SIGNAL_FAMILIES.map(f => (
+                                    <button
+                                        key={f.id}
+                                        onClick={() => setSelectedFamily(f.id)}
+                                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex items-center gap-2 ${
+                                            selectedFamily === f.id
+                                                ? 'bg-observatory-600 text-white'
+                                                : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                                        }`}
+                                    >
+                                        <span>{f.icon}</span>
+                                        <span>{f.name}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Signal Detail */}
+                        <div className="lg:col-span-3 glass-card rounded-xl p-6">
+                            <div className="flex items-center gap-3 mb-4">
+                                <span className="text-3xl">{family?.icon}</span>
+                                <div>
+                                    <h2 className="text-xl font-bold">{family?.name}</h2>
+                                    <p className="text-sm text-gray-400">{family?.description}</p>
+                                </div>
+                            </div>
+
+                            <div className="border-t border-white/10 pt-4">
+                                <h3 className="font-semibold mb-3">Key Metrics</h3>
+                                <div className="space-y-1">
+                                    {family?.metrics.map((metric, i) => {
+                                        const data = generateSignalData(activePriority, family.id + metric);
+                                        return (
+                                            <MetricDetailRow
+                                                key={metric}
+                                                name={metric}
+                                                value={data.value}
+                                                unit=""
+                                                confidence={data.confidence}
+                                                trend={data.trend}
+                                                source={data.source}
+                                            />
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            <div className="mt-6 p-4 bg-white/5 rounded-lg">
+                                <h4 className="font-medium mb-2">Data Sources & Methodology</h4>
+                                <ul className="text-sm text-gray-400 space-y-1">
+                                    <li>• District Survey (n=500, quarterly cadence)</li>
+                                    <li>• RFP Analysis (automated NLP pipeline)</li>
+                                    <li>• Vendor Catalog Scraping (monthly refresh)</li>
+                                    <li>• Policy Tracker Integration (real-time)</li>
+                                    <li>• Educator/Student Panel Data (bi-annual)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Briefs View
+        const BriefsView = ({ activePriority, setActivePriority }) => (
+            <div className="space-y-6">
+                {/* Priority Tabs */}
+                <div className="flex flex-wrap gap-2">
+                    {USLT_PRIORITIES.map(priority => (
+                        <PriorityTab
+                            key={priority.id}
+                            priority={priority}
+                            isActive={activePriority === priority.id}
+                            onClick={() => setActivePriority(priority.id)}
+                        />
+                    ))}
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Monthly Brief */}
+                    <div className="glass-card rounded-xl p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-lg font-semibold flex items-center gap-2">
+                                <span>📋</span> Monthly Signal Brief
+                            </h2>
+                            <span className="text-xs text-gray-400">January 2025</span>
+                        </div>
+                        <MonthlyBriefSummary priority={activePriority} />
+                    </div>
+
+                    {/* Quarterly Learning Memo Preview */}
+                    <div className="glass-card rounded-xl p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-lg font-semibold flex items-center gap-2">
+                                <span>📝</span> Quarterly Learning Memo
+                            </h2>
+                            <span className="text-xs text-gray-400">Q4 2024</span>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <h4 className="text-sm font-semibold text-green-400 mb-2">Hypotheses That Held</h4>
+                                <ul className="text-sm text-gray-300 space-y-1">
+                                    <li>• Evidence requirements in RFPs correlate with adoption quality</li>
+                                    <li>• Co-investment follows within 2 quarters of Foundation signal</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 className="text-sm font-semibold text-yellow-400 mb-2">Hypotheses Needing Revision</h4>
+                                <ul className="text-sm text-gray-300 space-y-1">
+                                    <li>• Price sensitivity varies more by region than anticipated</li>
+                                    <li>• Implementation burden not decreasing as fast as projected</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 className="text-sm font-semibold text-blue-400 mb-2">Start / Stop / Continue</h4>
+                                <div className="grid grid-cols-3 gap-2 text-xs">
+                                    <div className="bg-green-500/10 p-2 rounded">
+                                        <div className="font-semibold text-green-400 mb-1">START</div>
+                                        <p className="text-gray-400">Regional equity pilots</p>
+                                    </div>
+                                    <div className="bg-red-500/10 p-2 rounded">
+                                        <div className="font-semibold text-red-400 mb-1">STOP</div>
+                                        <p className="text-gray-400">Low-signal vendor tracking</p>
+                                    </div>
+                                    <div className="bg-blue-500/10 p-2 rounded">
+                                        <div className="font-semibold text-blue-400 mb-1">CONTINUE</div>
+                                        <p className="text-gray-400">Policy conversion monitoring</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Annual Report Preview */}
+                <div className="glass-card rounded-xl p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-lg font-semibold flex items-center gap-2">
+                            <span>📊</span> Annual State of Market Signals
+                        </h2>
+                        <span className="px-3 py-1 bg-observatory-600 rounded-full text-xs">2024 Report Available</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                        <div className="text-center p-4 bg-white/5 rounded-lg">
+                            <div className="text-2xl font-bold text-observatory-400">+34%</div>
+                            <div className="text-xs text-gray-400">Aligned Capital Growth</div>
+                        </div>
+                        <div className="text-center p-4 bg-white/5 rounded-lg">
+                            <div className="text-2xl font-bold text-green-400">47%</div>
+                            <div className="text-xs text-gray-400">Adoption Rate (vs 38% prior)</div>
+                        </div>
+                        <div className="text-center p-4 bg-white/5 rounded-lg">
+                            <div className="text-2xl font-bold text-purple-400">12</div>
+                            <div className="text-xs text-gray-400">States with Aligned Policy</div>
+                        </div>
+                        <div className="text-center p-4 bg-white/5 rounded-lg">
+                            <div className="text-2xl font-bold text-amber-400">2.8x</div>
+                            <div className="text-xs text-gray-400">Co-Investment Multiplier</div>
+                        </div>
+                    </div>
+
+                    <p className="text-sm text-gray-400">
+                        The 2024 Annual State of Market Signals provides the canonical, board-ready account of how the market changed this year and what it means for 2030 and 2045 targets. Full report includes detailed analysis by priority area, equity breakdowns, and strategic recommendations.
+                    </p>
+
+                    <button className="mt-4 px-4 py-2 bg-observatory-600 hover:bg-observatory-500 rounded-lg text-sm font-medium transition-colors">
+                        Download Full Report (PDF)
+                    </button>
+                </div>
+
+                {/* Decision Thresholds */}
+                <div className="glass-card rounded-xl p-6">
+                    <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <span>🎯</span> Pre-Agreed Decision Thresholds
+                    </h2>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="border-b border-white/10">
+                                    <th className="text-left py-2 text-gray-400 font-medium">Threshold</th>
+                                    <th className="text-left py-2 text-gray-400 font-medium">Current Status</th>
+                                    <th className="text-left py-2 text-gray-400 font-medium">Pre-Baked Response</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr className="border-b border-white/5">
+                                    <td className="py-3">Aligned capital inflows double for 2 quarters</td>
+                                    <td className="py-3"><span className="px-2 py-0.5 bg-green-500/20 text-green-400 rounded text-xs">CROSSED</span></td>
+                                    <td className="py-3 text-gray-400">Double-down investment</td>
+                                </tr>
+                                <tr className="border-b border-white/5">
+                                    <td className="py-3">Median price &lt; $15/learner</td>
+                                    <td className="py-3"><span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-400 rounded text-xs">APPROACHING</span></td>
+                                    <td className="py-3 text-gray-400">Expand market-making grants</td>
+                                </tr>
+                                <tr className="border-b border-white/5">
+                                    <td className="py-3">District RFP language standardizes on X</td>
+                                    <td className="py-3"><span className="px-2 py-0.5 bg-gray-500/20 text-gray-400 rounded text-xs">NOT MET</span></td>
+                                    <td className="py-3 text-gray-400">Shift to scale support</td>
+                                </tr>
+                                <tr className="border-b border-white/5">
+                                    <td className="py-3">Equity gap index &gt; 25 for 3 quarters</td>
+                                    <td className="py-3"><span className="px-2 py-0.5 bg-red-500/20 text-red-400 rounded text-xs">ALERT</span></td>
+                                    <td className="py-3 text-gray-400">Redesign intervention approach</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        );
+
+        // Main App
+        const App = () => {
+            const [currentView, setCurrentView] = useState('dashboard');
+            const [activePriority, setActivePriority] = useState('math');
+            const [selectedSignal, setSelectedSignal] = useState(null);
+
+            return (
+                <div className="min-h-screen">
+                    <Header currentView={currentView} setCurrentView={setCurrentView} />
+
+                    <main className="max-w-7xl mx-auto px-4 py-6">
+                        {currentView === 'dashboard' && (
+                            <DashboardView
+                                activePriority={activePriority}
+                                setActivePriority={setActivePriority}
+                                selectedSignal={selectedSignal}
+                                setSelectedSignal={setSelectedSignal}
+                            />
+                        )}
+                        {currentView === 'capital' && (
+                            <CapitalFlowsView
+                                activePriority={activePriority}
+                                setActivePriority={setActivePriority}
+                            />
+                        )}
+                        {currentView === 'signals' && (
+                            <SignalDeepDiveView
+                                activePriority={activePriority}
+                                setActivePriority={setActivePriority}
+                            />
+                        )}
+                        {currentView === 'briefs' && (
+                            <BriefsView
+                                activePriority={activePriority}
+                                setActivePriority={setActivePriority}
+                            />
+                        )}
+                    </main>
+
+                    <footer className="border-t border-white/10 mt-12">
+                        <div className="max-w-7xl mx-auto px-4 py-6">
+                            <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400">
+                                <div className="flex items-center gap-2">
+                                    <span>🔭</span>
+                                    <span>EdSolutions Market Signals Observatory</span>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <span>USLT 2030→2045</span>
+                                    <span>•</span>
+                                    <span>Last updated: {new Date().toLocaleDateString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </footer>
+                </div>
+            );
+        };
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
