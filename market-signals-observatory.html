@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EdSolutions Market Signals Observatory | USLT 2030→2045</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['IBM Plex Mono', 'monospace']
+                    },
+                    colors: {
+                        observatory: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                            950: '#082f49'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #0c4a6e 0%, #082f49 50%, #0f172a 100%);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .metric-bar {
+            transition: width 0.5s ease-out;
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen font-sans text-white">
+    <div id="root"></div>
+
+    <script type="text/javascript">
+        const { useState, useMemo, createElement: h } = React;
+
+        // Helper for creating elements with children
+        const el = (tag, props, ...children) => h(tag, props, ...children);
+
+        // ============================================================
+        // DATA
+        // ============================================================
+
+        const SIGNAL_FAMILIES = [
+            { id: 'supply', name: 'Supply Maturity', icon: '📦', description: 'Number and characteristics of fit-for-purpose solutions; price bands and cost curves; interoperability; evidence posture.', color: 'bg-blue-500', metrics: ['Solution Count', 'Price Band ($)', 'Evidence Score', 'Interoperability Index'] },
+            { id: 'demand', name: 'Demand & Adoption', icon: '📈', description: 'RFP volume and language; procurement wins; implementation starts; usage intensity; satisfaction; time-to-value.', color: 'bg-green-500', metrics: ['RFP Volume', 'Procurement Wins', 'Usage Intensity', 'Satisfaction Score'] },
+            { id: 'policy', name: 'Policy & Public Funding', icon: '🏛️', description: 'Rule changes; articulation/transfer policies; assessment regimes; appropriation lines; policy-to-procurement conversion.', color: 'bg-purple-500', metrics: ['Policy Changes', 'Appropriations ($M)', 'Conversion Rate', 'State Progress'] },
+            { id: 'capacity', name: 'Capacity to Implement', icon: '⚙️', description: 'District/provider readiness; staffing; integration burden; change-management friction; partner ecosystems.', color: 'bg-orange-500', metrics: ['Readiness Score', 'Staffing Index', 'Integration Burden', 'Partner Density'] },
+            { id: 'cadence', name: 'Cadence', icon: '⏱️', description: 'Adoption cycle length by segment; seasonality; renewal/churn dynamics.', color: 'bg-cyan-500', metrics: ['Cycle Length (mo)', 'Renewal Rate', 'Churn Rate', 'Seasonality Index'] },
+            { id: 'competition', name: 'Competition & Substitution', icon: '🎯', description: 'Share of mind and wallet; switching costs; incumbent defenses; category formation.', color: 'bg-red-500', metrics: ['Market Share', 'Switching Cost', 'Category Maturity', 'Competitor Count'] },
+            { id: 'equity', name: 'Equity & Access', icon: '⚖️', description: 'Disaggregated adoption and usage; unit cost vs TCO; accessibility standards; language availability.', color: 'bg-pink-500', metrics: ['Access Gap Index', 'Cost Equity Ratio', 'Language Coverage', 'Accessibility Score'] }
+        ];
+
+        const USLT_PRIORITIES = [
+            { id: 'math', name: 'Math Pathways', shortName: 'Math', description: 'Transforming mathematics education pathways for equitable student success', color: 'from-blue-600 to-blue-800', icon: '📐' },
+            { id: 'literacy', name: 'Literacy Foundations', shortName: 'Literacy', description: 'Building strong literacy foundations through evidence-based instruction', color: 'from-green-600 to-green-800', icon: '📚' },
+            { id: 'postsecondary', name: 'Postsecondary Success', shortName: 'Postsec', description: 'Ensuring successful transitions and completion in postsecondary education', color: 'from-purple-600 to-purple-800', icon: '🎓' },
+            { id: 'workforce', name: 'Workforce Readiness', shortName: 'Workforce', description: 'Preparing learners for meaningful employment and career advancement', color: 'from-orange-600 to-orange-800', icon: '💼' }
+        ];
+
+        const CAPITAL_FLOW_TYPES = [
+            { id: 'philanthropy', name: 'Philanthropy', icon: '🤝', color: 'bg-emerald-500' },
+            { id: 'public', name: 'Public Sector', icon: '🏛️', color: 'bg-blue-500' },
+            { id: 'private', name: 'Private Markets', icon: '💰', color: 'bg-amber-500' }
+        ];
+
+        // Data generators
+        const generateSignalData = (priorityId, signalId) => {
+            const seed = (priorityId + signalId).split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+            const random = (min, max) => {
+                const x = Math.sin(seed * 9999) * 10000;
+                return Math.floor((x - Math.floor(x)) * (max - min + 1)) + min;
+            };
+            const baseValue = random(30, 90);
+            const trend = ['up', 'down', 'neutral'][random(0, 2)];
+            const trendValue = trend === 'up' ? random(5, 25) : trend === 'down' ? -random(5, 20) : random(-3, 3);
+            const confidence = random(60, 95);
+            return {
+                value: baseValue, trend, trendValue, confidence,
+                lastUpdated: new Date(Date.now() - random(1, 30) * 24 * 60 * 60 * 1000).toLocaleDateString(),
+                source: ['District Survey', 'RFP Analysis', 'Vendor Data', 'Policy Tracker', 'Panel Data'][random(0, 4)]
+            };
+        };
+
+        const generateCapitalFlowData = (priorityId, flowType) => {
+            const seed = (priorityId + flowType).split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+            const random = (min, max) => {
+                const x = Math.sin(seed * 7777) * 10000;
+                return Math.floor((x - Math.floor(x)) * (max - min + 1)) + min;
+            };
+            const quarters = ['Q1 2024', 'Q2 2024', 'Q3 2024', 'Q4 2024', 'Q1 2025'];
+            const baseAmount = flowType === 'philanthropy' ? random(50, 200) : flowType === 'public' ? random(100, 500) : random(20, 150);
+            return {
+                current: baseAmount,
+                previousQuarter: baseAmount - random(-30, 30),
+                ytd: baseAmount * 3.2,
+                coInvestmentMultiplier: (random(15, 45) / 10).toFixed(1),
+                trend: ['up', 'down', 'neutral'][random(0, 2)],
+                quarters: quarters.map((q, i) => ({ quarter: q, amount: baseAmount * (0.7 + i * 0.15 + (random(-10, 10) / 100)) }))
+            };
+        };
+
+        // ============================================================
+        // COMPONENTS
+        // ============================================================
+
+        const ConfidenceBadge = ({ score }) => {
+            const level = score >= 80 ? 'high' : score >= 60 ? 'medium' : 'low';
+            const colors = {
+                high: 'bg-green-500/20 text-green-400 border-green-500/30',
+                medium: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+                low: 'bg-red-500/20 text-red-400 border-red-500/30'
+            };
+            return el('span', { className: `px-2 py-0.5 rounded-full text-xs font-mono border ${colors[level]}` }, `${score}% conf.`);
+        };
+
+        const TrendIndicator = ({ trend, value }) => {
+            const icons = { up: '↑', down: '↓', neutral: '→' };
+            const colors = { up: 'text-green-400', down: 'text-red-400', neutral: 'text-yellow-400' };
+            return el('span', { className: `flex items-center gap-1 ${colors[trend]} font-mono text-sm` },
+                el('span', null, icons[trend]),
+                el('span', null, `${value > 0 ? '+' : ''}${value}%`)
+            );
+        };
+
+        const SignalFamilyCard = ({ family, priority, onClick, isSelected }) => {
+            const data = useMemo(() => generateSignalData(priority, family.id), [priority, family.id]);
+            return el('div', {
+                onClick,
+                className: `glass-card rounded-xl p-4 cursor-pointer transition-all duration-300 hover:scale-[1.02] ${isSelected ? 'ring-2 ring-observatory-400' : ''}`
+            },
+                el('div', { className: 'flex items-center justify-between mb-3' },
+                    el('div', { className: 'flex items-center gap-2' },
+                        el('span', { className: 'text-2xl' }, family.icon),
+                        el('h3', { className: 'font-semibold text-sm' }, family.name)
+                    ),
+                    el(ConfidenceBadge, { score: data.confidence })
+                ),
+                el('div', { className: 'flex items-end justify-between' },
+                    el('div', null,
+                        el('div', { className: 'text-3xl font-bold text-white' }, data.value),
+                        el('div', { className: 'text-xs text-gray-400 mt-1' }, 'Composite Index')
+                    ),
+                    el(TrendIndicator, { trend: data.trend, value: data.trendValue })
+                ),
+                el('div', { className: 'mt-3 pt-3 border-t border-white/10' },
+                    el('div', { className: 'flex justify-between text-xs text-gray-400' },
+                        el('span', null, `Source: ${data.source}`),
+                        el('span', null, data.lastUpdated)
+                    )
+                )
+            );
+        };
+
+        const CapitalFlowChart = ({ data, color }) => {
+            const maxAmount = Math.max(...data.quarters.map(q => q.amount));
+            return el('div', { className: 'flex items-end gap-1 h-16' },
+                data.quarters.map((q, i) =>
+                    el('div', { key: q.quarter, className: 'flex-1 flex flex-col items-center' },
+                        el('div', { className: `w-full ${color} rounded-t transition-all duration-500`, style: { height: `${(q.amount / maxAmount) * 100}%`, opacity: 0.6 + i * 0.1 } }),
+                        el('span', { className: 'text-[10px] text-gray-500 mt-1' }, q.quarter.split(' ')[0])
+                    )
+                )
+            );
+        };
+
+        const CapitalFlowCard = ({ flowType, priority }) => {
+            const data = useMemo(() => generateCapitalFlowData(priority, flowType.id), [priority, flowType.id]);
+            const trendColors = { up: 'text-green-400', down: 'text-red-400', neutral: 'text-yellow-400' };
+            return el('div', { className: 'glass-card rounded-xl p-4' },
+                el('div', { className: 'flex items-center gap-2 mb-3' },
+                    el('span', { className: 'text-xl' }, flowType.icon),
+                    el('h4', { className: 'font-semibold' }, flowType.name)
+                ),
+                el('div', { className: 'grid grid-cols-2 gap-4 mb-4' },
+                    el('div', null,
+                        el('div', { className: 'text-2xl font-bold' }, `$${data.current}M`),
+                        el('div', { className: 'text-xs text-gray-400' }, 'Current Quarter')
+                    ),
+                    el('div', null,
+                        el('div', { className: 'text-2xl font-bold' }, `$${data.ytd.toFixed(0)}M`),
+                        el('div', { className: 'text-xs text-gray-400' }, 'YTD Total')
+                    )
+                ),
+                el(CapitalFlowChart, { data, color: flowType.color }),
+                el('div', { className: 'mt-4 pt-3 border-t border-white/10 flex justify-between items-center' },
+                    el('div', { className: 'text-xs' },
+                        el('span', { className: 'text-gray-400' }, 'Co-investment: '),
+                        el('span', { className: 'font-mono text-observatory-300' }, `${data.coInvestmentMultiplier}x`)
+                    ),
+                    el('span', { className: `text-xs ${trendColors[data.trend]}` },
+                        data.trend === 'up' ? '↑ Growing' : data.trend === 'down' ? '↓ Declining' : '→ Stable'
+                    )
+                )
+            );
+        };
+
+        const PriorityTab = ({ priority, isActive, onClick }) => {
+            return el('button', {
+                onClick,
+                className: `px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 flex items-center gap-2 ${isActive ? `bg-gradient-to-r ${priority.color} text-white shadow-lg` : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'}`
+            },
+                el('span', null, priority.icon),
+                el('span', null, priority.shortName)
+            );
+        };
+
+        const ThresholdAlert = ({ type, message, action }) => {
+            const styles = {
+                warning: 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400',
+                success: 'bg-green-500/10 border-green-500/30 text-green-400',
+                danger: 'bg-red-500/10 border-red-500/30 text-red-400'
+            };
+            return el('div', { className: `rounded-lg p-3 border ${styles[type]} mb-2` },
+                el('div', { className: 'flex items-start justify-between' },
+                    el('div', null,
+                        el('div', { className: 'font-medium text-sm' }, message),
+                        el('div', { className: 'text-xs mt-1 opacity-80' }, `Recommended: ${action}`)
+                    ),
+                    el('span', { className: 'text-lg' }, type === 'success' ? '✓' : type === 'warning' ? '⚠' : '!')
+                )
+            );
+        };
+
+        const EquityPanel = ({ priority }) => {
+            const segments = [
+                { name: 'Urban Districts', adoption: 78, access: 82, cost: 65 },
+                { name: 'Rural Districts', adoption: 45, access: 52, cost: 48 },
+                { name: 'Title I Schools', adoption: 62, access: 58, cost: 72 },
+                { name: 'English Learners', adoption: 41, access: 45, cost: 55 },
+                { name: 'Students w/ Disabilities', adoption: 38, access: 42, cost: 61 }
+            ];
+            return el('div', { className: 'glass-card rounded-xl p-5' },
+                el('h3', { className: 'font-semibold text-lg mb-4 flex items-center gap-2' },
+                    el('span', null, '⚖️'), ' Equity Disaggregation'
+                ),
+                el('div', { className: 'space-y-4' },
+                    segments.map(segment =>
+                        el('div', { key: segment.name, className: 'space-y-2' },
+                            el('div', { className: 'flex justify-between text-sm' },
+                                el('span', { className: 'font-medium' }, segment.name),
+                                el('span', { className: 'text-gray-400' }, `Gap Index: ${Math.abs(segment.adoption - 78)}`)
+                            ),
+                            el('div', { className: 'grid grid-cols-3 gap-2' },
+                                el('div', null,
+                                    el('div', { className: 'h-2 bg-gray-700 rounded-full overflow-hidden' },
+                                        el('div', { className: 'h-full bg-blue-500 metric-bar', style: { width: `${segment.adoption}%` } })
+                                    ),
+                                    el('div', { className: 'text-xs text-gray-500 mt-1' }, `Adoption ${segment.adoption}%`)
+                                ),
+                                el('div', null,
+                                    el('div', { className: 'h-2 bg-gray-700 rounded-full overflow-hidden' },
+                                        el('div', { className: 'h-full bg-green-500 metric-bar', style: { width: `${segment.access}%` } })
+                                    ),
+                                    el('div', { className: 'text-xs text-gray-500 mt-1' }, `Access ${segment.access}%`)
+                                ),
+                                el('div', null,
+                                    el('div', { className: 'h-2 bg-gray-700 rounded-full overflow-hidden' },
+                                        el('div', { className: 'h-full bg-purple-500 metric-bar', style: { width: `${segment.cost}%` } })
+                                    ),
+                                    el('div', { className: 'text-xs text-gray-500 mt-1' }, `Cost Equity ${segment.cost}%`)
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+        };
+
+        const MonthlyBriefSummary = ({ priority }) => {
+            const briefs = {
+                math: { moved: 'RFP volume up 23% with increased specificity around evidence requirements', noise: 'Short-term dip in vendor count (seasonal, Q4 pattern)', watch: 'Three states advancing aligned policy; conversion rate TBD', threshold: { crossed: true, message: 'Aligned capital inflows doubled for 2nd consecutive quarter' } },
+                literacy: { moved: 'Science of reading adoption reached 65% in surveyed districts', noise: 'Price variance high but driven by bundling changes', watch: 'Federal appropriations committee markup scheduled', threshold: { crossed: false, message: 'Approaching median price target ($12/learner)' } },
+                postsecondary: { moved: 'Transfer credit acceptance up 18% at partner institutions', noise: 'Enrollment fluctuations not signal-bearing this quarter', watch: 'Three registrar system vendors adding interoperability features', threshold: { crossed: true, message: 'Policy-to-procurement conversion exceeded 40%' } },
+                workforce: { moved: 'Employer co-investment commitments up 31%', noise: 'Job posting data volatile (macro factors)', watch: 'Credential transparency legislation in 5 states', threshold: { crossed: false, message: 'Nearing implementation readiness threshold' } }
+            };
+            const brief = briefs[priority] || briefs.math;
+            return el('div', { className: 'glass-card rounded-xl p-5' },
+                el('h3', { className: 'font-semibold text-lg mb-4 flex items-center gap-2' },
+                    el('span', null, '📋'), ' Monthly Signal Brief'
+                ),
+                el('div', { className: 'space-y-4' },
+                    el('div', null,
+                        el('div', { className: 'text-xs text-green-400 font-semibold uppercase tracking-wider mb-1' }, 'What Moved'),
+                        el('p', { className: 'text-sm text-gray-300' }, brief.moved)
+                    ),
+                    el('div', null,
+                        el('div', { className: 'text-xs text-yellow-400 font-semibold uppercase tracking-wider mb-1' }, 'Likely Noise'),
+                        el('p', { className: 'text-sm text-gray-300' }, brief.noise)
+                    ),
+                    el('div', null,
+                        el('div', { className: 'text-xs text-blue-400 font-semibold uppercase tracking-wider mb-1' }, 'Watch Next'),
+                        el('p', { className: 'text-sm text-gray-300' }, brief.watch)
+                    ),
+                    brief.threshold.crossed
+                        ? el(ThresholdAlert, { type: 'success', message: brief.threshold.message, action: 'Consider double-down investment' })
+                        : el(ThresholdAlert, { type: 'warning', message: brief.threshold.message, action: 'Continue monitoring; prepare contingency' })
+                )
+            );
+        };
+
+        const ReachLadder = ({ priority }) => {
+            const stages = [
+                { name: 'Awareness', value: 85, target: 90 },
+                { name: 'Interest', value: 72, target: 80 },
+                { name: 'Evaluation', value: 58, target: 70 },
+                { name: 'Trial', value: 41, target: 55 },
+                { name: 'Adoption', value: 28, target: 45 },
+                { name: 'Scale', value: 12, target: 30 }
+            ];
+            return el('div', { className: 'glass-card rounded-xl p-5' },
+                el('h3', { className: 'font-semibold text-lg mb-4 flex items-center gap-2' },
+                    el('span', null, '📊'), ' Reach Ladder'
+                ),
+                el('div', { className: 'space-y-3' },
+                    stages.map(stage =>
+                        el('div', { key: stage.name, className: 'space-y-1' },
+                            el('div', { className: 'flex justify-between text-sm' },
+                                el('span', null, stage.name),
+                                el('span', { className: 'font-mono' },
+                                    `${stage.value}%`,
+                                    el('span', { className: 'text-gray-500 text-xs ml-1' }, `(target: ${stage.target}%)`)
+                                )
+                            ),
+                            el('div', { className: 'h-3 bg-gray-700 rounded-full overflow-hidden relative' },
+                                el('div', { className: 'h-full bg-gradient-to-r from-observatory-500 to-observatory-400 metric-bar rounded-full', style: { width: `${stage.value}%` } }),
+                                el('div', { className: 'absolute top-0 bottom-0 w-0.5 bg-white/50', style: { left: `${stage.target}%` } })
+                            )
+                        )
+                    )
+                ),
+                el('div', { className: 'mt-4 pt-3 border-t border-white/10 text-xs text-gray-400' }, 'White markers indicate 2030 targets')
+            );
+        };
+
+        const Navigation = ({ currentView, setCurrentView }) => {
+            const views = [
+                { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+                { id: 'capital', label: 'Capital Flows', icon: '💰' },
+                { id: 'signals', label: 'Signal Deep Dive', icon: '🔍' },
+                { id: 'briefs', label: 'Briefs & Memos', icon: '📋' }
+            ];
+            return el('nav', { className: 'flex items-center gap-1 bg-white/5 rounded-lg p-1' },
+                views.map(view =>
+                    el('button', {
+                        key: view.id,
+                        onClick: () => setCurrentView(view.id),
+                        className: `px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${currentView === view.id ? 'bg-observatory-600 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`
+                    },
+                        el('span', null, view.icon),
+                        el('span', { className: 'hidden sm:inline' }, view.label)
+                    )
+                )
+            );
+        };
+
+        const Header = ({ currentView, setCurrentView }) => {
+            return el('header', { className: 'border-b border-white/10 bg-black/20 backdrop-blur-lg sticky top-0 z-50' },
+                el('div', { className: 'max-w-7xl mx-auto px-4 py-4' },
+                    el('div', { className: 'flex flex-col md:flex-row md:items-center justify-between gap-4' },
+                        el('div', null,
+                            el('div', { className: 'flex items-center gap-3' },
+                                el('div', { className: 'w-10 h-10 bg-gradient-to-br from-observatory-400 to-observatory-600 rounded-lg flex items-center justify-center' },
+                                    el('span', { className: 'text-xl' }, '🔭')
+                                ),
+                                el('div', null,
+                                    el('h1', { className: 'text-xl font-bold' }, 'Market Signals Observatory'),
+                                    el('p', { className: 'text-xs text-gray-400' }, 'EdSolutions | USLT 2030→2045')
+                                )
+                            )
+                        ),
+                        el(Navigation, { currentView, setCurrentView })
+                    )
+                )
+            );
+        };
+
+        // ============================================================
+        // VIEWS
+        // ============================================================
+
+        const DashboardView = ({ activePriority, setActivePriority, selectedSignal, setSelectedSignal }) => {
+            const currentPriority = USLT_PRIORITIES.find(p => p.id === activePriority);
+            return el('div', { className: 'space-y-6' },
+                // Priority Tabs
+                el('div', { className: 'flex flex-wrap gap-2' },
+                    USLT_PRIORITIES.map(priority =>
+                        el(PriorityTab, { key: priority.id, priority, isActive: activePriority === priority.id, onClick: () => setActivePriority(priority.id) })
+                    )
+                ),
+                // Priority Description
+                el('div', { className: 'glass-card rounded-xl p-4' },
+                    el('div', { className: 'flex items-center gap-3' },
+                        el('span', { className: 'text-3xl' }, currentPriority?.icon),
+                        el('div', null,
+                            el('h2', { className: 'font-semibold text-lg' }, currentPriority?.name),
+                            el('p', { className: 'text-sm text-gray-400' }, currentPriority?.description)
+                        )
+                    )
+                ),
+                // Signal Families Grid
+                el('div', null,
+                    el('h2', { className: 'text-lg font-semibold mb-4 flex items-center gap-2' },
+                        el('span', null, '📡'), ' Signal Families Instrument Panel'
+                    ),
+                    el('div', { className: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4' },
+                        SIGNAL_FAMILIES.map(family =>
+                            el(SignalFamilyCard, {
+                                key: family.id,
+                                family,
+                                priority: activePriority,
+                                isSelected: selectedSignal === family.id,
+                                onClick: () => setSelectedSignal(selectedSignal === family.id ? null : family.id)
+                            })
+                        )
+                    )
+                ),
+                // Bottom Grid
+                el('div', { className: 'grid grid-cols-1 lg:grid-cols-3 gap-6' },
+                    el(ReachLadder, { priority: activePriority }),
+                    el(MonthlyBriefSummary, { priority: activePriority }),
+                    el(EquityPanel, { priority: activePriority })
+                )
+            );
+        };
+
+        const CapitalFlowsView = ({ activePriority, setActivePriority }) => {
+            const totalFlows = useMemo(() => {
+                const flows = CAPITAL_FLOW_TYPES.map(type => generateCapitalFlowData(activePriority, type.id));
+                return {
+                    current: flows.reduce((sum, f) => sum + f.current, 0),
+                    ytd: flows.reduce((sum, f) => sum + f.ytd, 0),
+                    avgMultiplier: (flows.reduce((sum, f) => sum + parseFloat(f.coInvestmentMultiplier), 0) / 3).toFixed(1)
+                };
+            }, [activePriority]);
+            const currentPriority = USLT_PRIORITIES.find(p => p.id === activePriority);
+
+            return el('div', { className: 'space-y-6' },
+                // Priority Tabs
+                el('div', { className: 'flex flex-wrap gap-2' },
+                    USLT_PRIORITIES.map(priority =>
+                        el(PriorityTab, { key: priority.id, priority, isActive: activePriority === priority.id, onClick: () => setActivePriority(priority.id) })
+                    )
+                ),
+                // Summary Stats
+                el('div', { className: 'glass-card rounded-xl p-6' },
+                    el('h2', { className: 'text-lg font-semibold mb-4 flex items-center gap-2' },
+                        el('span', null, '💰'), ` Capital Flows Summary - ${currentPriority?.name}`
+                    ),
+                    el('div', { className: 'grid grid-cols-1 md:grid-cols-3 gap-6' },
+                        el('div', { className: 'text-center p-4 bg-white/5 rounded-lg' },
+                            el('div', { className: 'text-4xl font-bold text-observatory-400' }, `$${totalFlows.current}M`),
+                            el('div', { className: 'text-sm text-gray-400 mt-1' }, 'Current Quarter Total')
+                        ),
+                        el('div', { className: 'text-center p-4 bg-white/5 rounded-lg' },
+                            el('div', { className: 'text-4xl font-bold text-green-400' }, `$${totalFlows.ytd.toFixed(0)}M`),
+                            el('div', { className: 'text-sm text-gray-400 mt-1' }, 'Year-to-Date Total')
+                        ),
+                        el('div', { className: 'text-center p-4 bg-white/5 rounded-lg' },
+                            el('div', { className: 'text-4xl font-bold text-amber-400' }, `${totalFlows.avgMultiplier}x`),
+                            el('div', { className: 'text-sm text-gray-400 mt-1' }, 'Avg Co-Investment Multiplier')
+                        )
+                    )
+                ),
+                // Capital Flow Cards
+                el('div', { className: 'grid grid-cols-1 md:grid-cols-3 gap-6' },
+                    CAPITAL_FLOW_TYPES.map(flowType =>
+                        el(CapitalFlowCard, { key: flowType.id, flowType, priority: activePriority })
+                    )
+                ),
+                // Interpretation Guidelines
+                el('div', { className: 'glass-card rounded-xl p-6' },
+                    el('h3', { className: 'font-semibold text-lg mb-4' }, 'Interpretation Guidelines'),
+                    el('div', { className: 'grid grid-cols-1 md:grid-cols-3 gap-6 text-sm' },
+                        el('div', null,
+                            el('h4', { className: 'font-medium text-emerald-400 mb-2' }, '🤝 Philanthropy'),
+                            el('p', { className: 'text-gray-400' }, 'Peer commitments, co-funding density by region/domain, time-to-follow-on after Foundation signals. Key metric: Co-investment multiplier.')
+                        ),
+                        el('div', null,
+                            el('h4', { className: 'font-medium text-blue-400 mb-2' }, '🏛️ Public Sector'),
+                            el('p', { className: 'text-gray-400' }, 'Budget lines, implementation grants, regulatory enables. Key metric: Policy-to-procurement conversion rate.')
+                        ),
+                        el('div', null,
+                            el('h4', { className: 'font-medium text-amber-400 mb-2' }, '💰 Private Markets'),
+                            el('p', { className: 'text-gray-400' }, 'Venture/growth investment, M&A, and category capitalization curves. Key metric: Price/quality compression.')
+                        )
+                    ),
+                    el('div', { className: 'mt-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg' },
+                        el('p', { className: 'text-sm text-yellow-400' },
+                            el('strong', null, 'Note:'), ' Capital flows are never read in isolation. Every dollar trend is paired with adoption, quality, and equity metrics.'
+                        )
+                    )
+                )
+            );
+        };
+
+        const SignalDeepDiveView = ({ activePriority, setActivePriority }) => {
+            const [selectedFamily, setSelectedFamily] = useState('supply');
+            const family = SIGNAL_FAMILIES.find(f => f.id === selectedFamily);
+
+            return el('div', { className: 'space-y-6' },
+                // Priority Tabs
+                el('div', { className: 'flex flex-wrap gap-2' },
+                    USLT_PRIORITIES.map(priority =>
+                        el(PriorityTab, { key: priority.id, priority, isActive: activePriority === priority.id, onClick: () => setActivePriority(priority.id) })
+                    )
+                ),
+                el('div', { className: 'grid grid-cols-1 lg:grid-cols-4 gap-6' },
+                    // Signal Family Selector
+                    el('div', { className: 'glass-card rounded-xl p-4' },
+                        el('h3', { className: 'font-semibold mb-4' }, 'Signal Families'),
+                        el('div', { className: 'space-y-2' },
+                            SIGNAL_FAMILIES.map(f =>
+                                el('button', {
+                                    key: f.id,
+                                    onClick: () => setSelectedFamily(f.id),
+                                    className: `w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex items-center gap-2 ${selectedFamily === f.id ? 'bg-observatory-600 text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`
+                                },
+                                    el('span', null, f.icon),
+                                    el('span', null, f.name)
+                                )
+                            )
+                        )
+                    ),
+                    // Signal Detail
+                    el('div', { className: 'lg:col-span-3 glass-card rounded-xl p-6' },
+                        el('div', { className: 'flex items-center gap-3 mb-4' },
+                            el('span', { className: 'text-3xl' }, family?.icon),
+                            el('div', null,
+                                el('h2', { className: 'text-xl font-bold' }, family?.name),
+                                el('p', { className: 'text-sm text-gray-400' }, family?.description)
+                            )
+                        ),
+                        el('div', { className: 'border-t border-white/10 pt-4' },
+                            el('h3', { className: 'font-semibold mb-3' }, 'Key Metrics'),
+                            el('div', { className: 'space-y-1' },
+                                family?.metrics.map(metric => {
+                                    const data = generateSignalData(activePriority, family.id + metric);
+                                    return el('div', { key: metric, className: 'flex items-center justify-between py-3 border-b border-white/5 last:border-0' },
+                                        el('div', { className: 'flex-1' },
+                                            el('div', { className: 'font-medium text-sm' }, metric),
+                                            el('div', { className: 'text-xs text-gray-500' }, `Source: ${data.source}`)
+                                        ),
+                                        el('div', { className: 'flex items-center gap-4' },
+                                            el('div', { className: 'text-right' },
+                                                el('div', { className: 'font-mono font-bold' }, data.value)
+                                            ),
+                                            el(TrendIndicator, { trend: data.trend, value: data.trendValue }),
+                                            el(ConfidenceBadge, { score: data.confidence })
+                                        )
+                                    );
+                                })
+                            )
+                        ),
+                        el('div', { className: 'mt-6 p-4 bg-white/5 rounded-lg' },
+                            el('h4', { className: 'font-medium mb-2' }, 'Data Sources & Methodology'),
+                            el('ul', { className: 'text-sm text-gray-400 space-y-1' },
+                                el('li', null, '• District Survey (n=500, quarterly cadence)'),
+                                el('li', null, '• RFP Analysis (automated NLP pipeline)'),
+                                el('li', null, '• Vendor Catalog Scraping (monthly refresh)'),
+                                el('li', null, '• Policy Tracker Integration (real-time)'),
+                                el('li', null, '• Educator/Student Panel Data (bi-annual)')
+                            )
+                        )
+                    )
+                )
+            );
+        };
+
+        const BriefsView = ({ activePriority, setActivePriority }) => {
+            return el('div', { className: 'space-y-6' },
+                // Priority Tabs
+                el('div', { className: 'flex flex-wrap gap-2' },
+                    USLT_PRIORITIES.map(priority =>
+                        el(PriorityTab, { key: priority.id, priority, isActive: activePriority === priority.id, onClick: () => setActivePriority(priority.id) })
+                    )
+                ),
+                el('div', { className: 'grid grid-cols-1 lg:grid-cols-2 gap-6' },
+                    // Monthly Brief
+                    el('div', { className: 'glass-card rounded-xl p-6' },
+                        el('div', { className: 'flex items-center justify-between mb-4' },
+                            el('h2', { className: 'text-lg font-semibold flex items-center gap-2' },
+                                el('span', null, '📋'), ' Monthly Signal Brief'
+                            ),
+                            el('span', { className: 'text-xs text-gray-400' }, 'January 2025')
+                        ),
+                        el(MonthlyBriefSummary, { priority: activePriority })
+                    ),
+                    // Quarterly Learning Memo
+                    el('div', { className: 'glass-card rounded-xl p-6' },
+                        el('div', { className: 'flex items-center justify-between mb-4' },
+                            el('h2', { className: 'text-lg font-semibold flex items-center gap-2' },
+                                el('span', null, '📝'), ' Quarterly Learning Memo'
+                            ),
+                            el('span', { className: 'text-xs text-gray-400' }, 'Q4 2024')
+                        ),
+                        el('div', { className: 'space-y-4' },
+                            el('div', null,
+                                el('h4', { className: 'text-sm font-semibold text-green-400 mb-2' }, 'Hypotheses That Held'),
+                                el('ul', { className: 'text-sm text-gray-300 space-y-1' },
+                                    el('li', null, '• Evidence requirements in RFPs correlate with adoption quality'),
+                                    el('li', null, '• Co-investment follows within 2 quarters of Foundation signal')
+                                )
+                            ),
+                            el('div', null,
+                                el('h4', { className: 'text-sm font-semibold text-yellow-400 mb-2' }, 'Hypotheses Needing Revision'),
+                                el('ul', { className: 'text-sm text-gray-300 space-y-1' },
+                                    el('li', null, '• Price sensitivity varies more by region than anticipated'),
+                                    el('li', null, '• Implementation burden not decreasing as fast as projected')
+                                )
+                            ),
+                            el('div', null,
+                                el('h4', { className: 'text-sm font-semibold text-blue-400 mb-2' }, 'Start / Stop / Continue'),
+                                el('div', { className: 'grid grid-cols-3 gap-2 text-xs' },
+                                    el('div', { className: 'bg-green-500/10 p-2 rounded' },
+                                        el('div', { className: 'font-semibold text-green-400 mb-1' }, 'START'),
+                                        el('p', { className: 'text-gray-400' }, 'Regional equity pilots')
+                                    ),
+                                    el('div', { className: 'bg-red-500/10 p-2 rounded' },
+                                        el('div', { className: 'font-semibold text-red-400 mb-1' }, 'STOP'),
+                                        el('p', { className: 'text-gray-400' }, 'Low-signal vendor tracking')
+                                    ),
+                                    el('div', { className: 'bg-blue-500/10 p-2 rounded' },
+                                        el('div', { className: 'font-semibold text-blue-400 mb-1' }, 'CONTINUE'),
+                                        el('p', { className: 'text-gray-400' }, 'Policy conversion monitoring')
+                                    )
+                                )
+                            )
+                        )
+                    )
+                ),
+                // Annual Report
+                el('div', { className: 'glass-card rounded-xl p-6' },
+                    el('div', { className: 'flex items-center justify-between mb-4' },
+                        el('h2', { className: 'text-lg font-semibold flex items-center gap-2' },
+                            el('span', null, '📊'), ' Annual State of Market Signals'
+                        ),
+                        el('span', { className: 'px-3 py-1 bg-observatory-600 rounded-full text-xs' }, '2024 Report Available')
+                    ),
+                    el('div', { className: 'grid grid-cols-1 md:grid-cols-4 gap-4 mb-4' },
+                        el('div', { className: 'text-center p-4 bg-white/5 rounded-lg' },
+                            el('div', { className: 'text-2xl font-bold text-observatory-400' }, '+34%'),
+                            el('div', { className: 'text-xs text-gray-400' }, 'Aligned Capital Growth')
+                        ),
+                        el('div', { className: 'text-center p-4 bg-white/5 rounded-lg' },
+                            el('div', { className: 'text-2xl font-bold text-green-400' }, '47%'),
+                            el('div', { className: 'text-xs text-gray-400' }, 'Adoption Rate (vs 38% prior)')
+                        ),
+                        el('div', { className: 'text-center p-4 bg-white/5 rounded-lg' },
+                            el('div', { className: 'text-2xl font-bold text-purple-400' }, '12'),
+                            el('div', { className: 'text-xs text-gray-400' }, 'States with Aligned Policy')
+                        ),
+                        el('div', { className: 'text-center p-4 bg-white/5 rounded-lg' },
+                            el('div', { className: 'text-2xl font-bold text-amber-400' }, '2.8x'),
+                            el('div', { className: 'text-xs text-gray-400' }, 'Co-Investment Multiplier')
+                        )
+                    ),
+                    el('p', { className: 'text-sm text-gray-400' },
+                        'The 2024 Annual State of Market Signals provides the canonical, board-ready account of how the market changed this year and what it means for 2030 and 2045 targets.'
+                    ),
+                    el('button', { className: 'mt-4 px-4 py-2 bg-observatory-600 hover:bg-observatory-500 rounded-lg text-sm font-medium transition-colors' },
+                        'Download Full Report (PDF)'
+                    )
+                ),
+                // Decision Thresholds
+                el('div', { className: 'glass-card rounded-xl p-6' },
+                    el('h2', { className: 'text-lg font-semibold mb-4 flex items-center gap-2' },
+                        el('span', null, '🎯'), ' Pre-Agreed Decision Thresholds'
+                    ),
+                    el('div', { className: 'overflow-x-auto' },
+                        el('table', { className: 'w-full text-sm' },
+                            el('thead', null,
+                                el('tr', { className: 'border-b border-white/10' },
+                                    el('th', { className: 'text-left py-2 text-gray-400 font-medium' }, 'Threshold'),
+                                    el('th', { className: 'text-left py-2 text-gray-400 font-medium' }, 'Current Status'),
+                                    el('th', { className: 'text-left py-2 text-gray-400 font-medium' }, 'Pre-Baked Response')
+                                )
+                            ),
+                            el('tbody', null,
+                                el('tr', { className: 'border-b border-white/5' },
+                                    el('td', { className: 'py-3' }, 'Aligned capital inflows double for 2 quarters'),
+                                    el('td', { className: 'py-3' }, el('span', { className: 'px-2 py-0.5 bg-green-500/20 text-green-400 rounded text-xs' }, 'CROSSED')),
+                                    el('td', { className: 'py-3 text-gray-400' }, 'Double-down investment')
+                                ),
+                                el('tr', { className: 'border-b border-white/5' },
+                                    el('td', { className: 'py-3' }, 'Median price < $15/learner'),
+                                    el('td', { className: 'py-3' }, el('span', { className: 'px-2 py-0.5 bg-yellow-500/20 text-yellow-400 rounded text-xs' }, 'APPROACHING')),
+                                    el('td', { className: 'py-3 text-gray-400' }, 'Expand market-making grants')
+                                ),
+                                el('tr', { className: 'border-b border-white/5' },
+                                    el('td', { className: 'py-3' }, 'District RFP language standardizes on X'),
+                                    el('td', { className: 'py-3' }, el('span', { className: 'px-2 py-0.5 bg-gray-500/20 text-gray-400 rounded text-xs' }, 'NOT MET')),
+                                    el('td', { className: 'py-3 text-gray-400' }, 'Shift to scale support')
+                                ),
+                                el('tr', { className: 'border-b border-white/5' },
+                                    el('td', { className: 'py-3' }, 'Equity gap index > 25 for 3 quarters'),
+                                    el('td', { className: 'py-3' }, el('span', { className: 'px-2 py-0.5 bg-red-500/20 text-red-400 rounded text-xs' }, 'ALERT')),
+                                    el('td', { className: 'py-3 text-gray-400' }, 'Redesign intervention approach')
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+        };
+
+        // ============================================================
+        // MAIN APP
+        // ============================================================
+
+        const App = () => {
+            const [currentView, setCurrentView] = useState('dashboard');
+            const [activePriority, setActivePriority] = useState('math');
+            const [selectedSignal, setSelectedSignal] = useState(null);
+
+            let viewContent;
+            if (currentView === 'dashboard') {
+                viewContent = el(DashboardView, { activePriority, setActivePriority, selectedSignal, setSelectedSignal });
+            } else if (currentView === 'capital') {
+                viewContent = el(CapitalFlowsView, { activePriority, setActivePriority });
+            } else if (currentView === 'signals') {
+                viewContent = el(SignalDeepDiveView, { activePriority, setActivePriority });
+            } else if (currentView === 'briefs') {
+                viewContent = el(BriefsView, { activePriority, setActivePriority });
+            }
+
+            return el('div', { className: 'min-h-screen' },
+                el(Header, { currentView, setCurrentView }),
+                el('main', { className: 'max-w-7xl mx-auto px-4 py-6' }, viewContent),
+                el('footer', { className: 'border-t border-white/10 mt-12' },
+                    el('div', { className: 'max-w-7xl mx-auto px-4 py-6' },
+                        el('div', { className: 'flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400' },
+                            el('div', { className: 'flex items-center gap-2' },
+                                el('span', null, '🔭'),
+                                el('span', null, 'EdSolutions Market Signals Observatory')
+                            ),
+                            el('div', { className: 'flex items-center gap-4' },
+                                el('span', null, 'USLT 2030→2045'),
+                                el('span', null, '•'),
+                                el('span', null, `Last updated: ${new Date().toLocaleDateString()}`)
+                            )
+                        )
+                    )
+                )
+            );
+        };
+
+        // Render
+        ReactDOM.createRoot(document.getElementById('root')).render(el(App));
+    </script>
+</body>
+</html>
