@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, Minus, DollarSign } from 'lucide-react';
 import { getCapitalFlows, getCapitalSummary } from '../data/capitalFlows';
-import { cn, formatCurrency } from '../lib/utils';
+import { formatCurrency } from '../lib/utils';
 
 interface CapitalFlowsSummaryProps {
   priorityId: string;

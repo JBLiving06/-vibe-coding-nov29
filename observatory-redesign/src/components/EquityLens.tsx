@@ -13,7 +13,7 @@ export default function EquityLens({ priorityId }: EquityLensProps) {
   const segments = getEquitySegments(priorityId);
   const summary = getEquitySummary(priorityId);
 
-  const statusColors = {
+  const statusColors: Record<string, string> = {
     alert: 'bg-signal-alert/10 border-signal-alert/20 text-signal-alert',
     attention: 'bg-signal-attention/10 border-signal-attention/20 text-signal-attention',
     healthy: 'bg-signal-healthy/10 border-signal-healthy/20 text-signal-healthy',
