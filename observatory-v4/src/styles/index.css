@@ -1,0 +1,132 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Ambient gradient background - from v3 */
+.ambient-gradient {
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 40%, rgba(13, 115, 119, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 80% 20%, rgba(217, 119, 6, 0.02) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 60% at 50% 80%, rgba(13, 115, 119, 0.02) 0%, transparent 50%),
+    linear-gradient(180deg, #faf9f7 0%, #f5f3ef 100%);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d4d4d4;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Signal state colors */
+.signal-state-rising {
+  @apply bg-signal-rising-bg text-signal-rising;
+}
+
+.signal-state-stable {
+  @apply bg-signal-stable-bg text-signal-stable;
+}
+
+.signal-state-watch {
+  @apply bg-signal-watch-bg text-signal-watch;
+}
+
+.signal-state-critical {
+  @apply bg-signal-critical-bg text-signal-critical;
+}
+
+/* Priority card hyperscaler bar animation */
+.hyperscaler-bar {
+  background: linear-gradient(180deg, #d97706 0%, #f59e0b 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.hyperscaler-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 50%, rgba(255,255,255,0.1) 100%);
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* Modal backdrop blur */
+.modal-backdrop {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Constellation connection lines */
+.constellation-line {
+  stroke: rgba(13, 115, 119, 0.2);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+/* Demo banner pulse */
+.demo-pulse {
+  animation: demoPulse 2s ease-in-out infinite;
+}
+
+@keyframes demoPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Card hover lift effect */
+.card-hover {
+  transition: all 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* Typography utilities */
+.text-display {
+  font-family: 'Fraunces', Georgia, serif;
+}
+
+.text-body {
+  font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+}
+
+.text-mono {
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+/* Focus states */
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid #0d7377;
+  outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+  .demo-banner,
+  .no-print {
+    display: none !important;
+  }
+}

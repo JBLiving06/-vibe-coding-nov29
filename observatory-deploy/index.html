@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Market Signals Observatory | EdSolutions</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔭</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink-900: #1a1a1a;
+      --ink-800: #2d2d2d;
+      --ink-600: #525252;
+      --ink-400: #8a8a8a;
+      --ink-200: #d4d4d4;
+      --paper: #faf9f7;
+      --paper-warm: #f5f3ef;
+      --accent: #0d7377;
+      --hyperscaler: #d97706;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+      background: var(--paper);
+      color: var(--ink-800);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 40%, rgba(13, 115, 119, 0.04) 0%, transparent 50%),
+        radial-gradient(ellipse 60% 40% at 80% 20%, rgba(217, 119, 6, 0.03) 0%, transparent 50%),
+        linear-gradient(180deg, #faf9f7 0%, #f5f3ef 100%);
+    }
+
+    .container {
+      max-width: 800px;
+      text-align: center;
+    }
+
+    .brand {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 2.5rem;
+      font-weight: 600;
+      color: var(--ink-900);
+      line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: var(--ink-600);
+      line-height: 1.6;
+      max-width: 600px;
+      margin: 0 auto 3rem;
+    }
+
+    .versions {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .version-card {
+      background: white;
+      border: 1px solid var(--ink-200);
+      border-radius: 12px;
+      padding: 2rem;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      text-align: left;
+    }
+
+    .version-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+      transform: translateY(-2px);
+    }
+
+    .version-card.recommended {
+      border-color: var(--accent);
+      border-width: 2px;
+    }
+
+    .version-badge {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+    }
+
+    .version-card.recommended .version-badge {
+      background: var(--accent);
+      color: white;
+    }
+
+    .version-card:not(.recommended) .version-badge {
+      background: var(--paper-warm);
+      color: var(--ink-600);
+    }
+
+    .version-title {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--ink-900);
+      margin-bottom: 0.5rem;
+    }
+
+    .version-description {
+      font-size: 0.9rem;
+      color: var(--ink-600);
+      line-height: 1.5;
+      margin-bottom: 1.5rem;
+    }
+
+    .version-features {
+      font-size: 0.8rem;
+      color: var(--ink-400);
+      line-height: 1.6;
+    }
+
+    .version-cta {
+      margin-top: auto;
+      padding-top: 1.5rem;
+      font-weight: 500;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .version-cta::after {
+      content: '→';
+      transition: transform 0.2s;
+    }
+
+    .version-card:hover .version-cta::after {
+      transform: translateX(4px);
+    }
+
+    .footer {
+      font-size: 0.8rem;
+      color: var(--ink-400);
+    }
+
+    .footer strong {
+      color: var(--ink-600);
+    }
+
+    @media (max-width: 640px) {
+      .versions {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 1.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="brand">EdSolutions</div>
+    <h1>Market Signals Observatory</h1>
+    <p class="subtitle">
+      Select a version to explore. Both versions are demonstrations of the
+      Observatory's capabilities—for internal review and comparison.
+    </p>
+
+    <div class="versions">
+      <a href="./v4/" class="version-card recommended">
+        <span class="version-badge">Recommended</span>
+        <h2 class="version-title">Version 4.0</h2>
+        <p class="version-description">
+          Architecture-first design aligned with Gates USP 2030 structure.
+          Features prominent demo mode, hyperscaler dimension, and teaching layer.
+        </p>
+        <div class="version-features">
+          ✓ Gates architecture alignment<br>
+          ✓ Dual scaling model visible<br>
+          ✓ Signal framework explained<br>
+          ✓ Strategic positioning
+        </div>
+        <span class="version-cta">Enter Observatory v4</span>
+      </a>
+
+      <a href="./v3/" class="version-card">
+        <span class="version-badge">Previous</span>
+        <h2 class="version-title">Version 3.0</h2>
+        <p class="version-description">
+          Constellation-focused design with orientation sequence.
+          Strong visual sophistication with Framer Motion animations.
+        </p>
+        <div class="version-features">
+          ✓ Constellation visualization<br>
+          ✓ 4-step orientation flow<br>
+          ✓ Animated transitions<br>
+          ✓ Signal detail panels
+        </div>
+        <span class="version-cta">View Observatory v3</span>
+      </a>
+    </div>
+
+    <div class="footer">
+      <strong>EdSolutions</strong> · Market Intelligence for Mission-Driven Education
+    </div>
+  </div>
+</body>
+</html>
