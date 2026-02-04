@@ -1,47 +1,92 @@
 import { motion } from 'framer-motion';
+import { Layers, BookOpen, Database } from 'lucide-react';
 
 interface HeaderProps {
   onOpenFramework: () => void;
   onOpenDataSources: () => void;
 }
 
+/**
+ * Header - Main navigation bar
+ * Features glass morphism and warm color palette
+ */
 export default function Header({ onOpenFramework, onOpenDataSources }: HeaderProps) {
   return (
     <motion.header
-      className="bg-paper border-b border-ink-200 px-6 lg:px-8 py-4 flex items-center justify-between"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      className="glass sticky top-[52px] z-40 px-4 sm:px-6 lg:px-8 py-4"
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
     >
-      <div className="flex flex-col gap-0.5">
-        <span className="font-mono text-[0.65rem] font-medium tracking-[0.15em] uppercase text-accent">
-          EdSolutions
-        </span>
-        <span className="font-display text-xl font-semibold text-ink-900">
-          Market Signals Observatory
-        </span>
-      </div>
+      <div className="max-w-7xl mx-auto flex items-center justify-between">
+        {/* Logo / Brand */}
+        <div className="flex flex-col gap-0.5">
+          <motion.span
+            className="font-mono text-[0.65rem] font-medium tracking-[0.15em] uppercase text-accent-primary"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            EdSolutions
+          </motion.span>
+          <motion.span
+            className="font-display text-lg sm:text-xl font-semibold text-warm-800"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            Market Signals Observatory
+          </motion.span>
+        </div>
 
-      <nav className="flex items-center gap-6">
-        <button
-          onClick={() => {}}
-          className="text-sm text-accent font-medium hover:text-accent-light transition-colors"
-        >
-          Architecture View
+        {/* Navigation */}
+        <nav className="hidden sm:flex items-center gap-2">
+          {/* Active View Indicator */}
+          <motion.button
+            className="flex items-center gap-2 px-3 py-2 rounded-lg
+                       bg-accent-primary/10 text-accent-primary
+                       text-sm font-medium"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Layers className="w-4 h-4" />
+            <span>Architecture View</span>
+          </motion.button>
+
+          {/* Framework Button */}
+          <motion.button
+            onClick={onOpenFramework}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg
+                       text-warm-600 hover:text-warm-800 hover:bg-warm-100
+                       text-sm font-medium transition-colors"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <BookOpen className="w-4 h-4" />
+            <span>Signal Framework</span>
+          </motion.button>
+
+          {/* Data Sources Button */}
+          <motion.button
+            onClick={onOpenDataSources}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg
+                       text-warm-600 hover:text-warm-800 hover:bg-warm-100
+                       text-sm font-medium transition-colors"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Database className="w-4 h-4" />
+            <span>Data Sources</span>
+          </motion.button>
+        </nav>
+
+        {/* Mobile Menu Button */}
+        <button className="sm:hidden p-2 text-warm-600 hover:text-warm-800">
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
         </button>
-        <button
-          onClick={onOpenFramework}
-          className="text-sm text-ink-600 hover:text-ink-900 transition-colors"
-        >
-          Signal Framework
-        </button>
-        <button
-          onClick={onOpenDataSources}
-          className="text-sm text-ink-600 hover:text-ink-900 transition-colors"
-        >
-          Data Sources
-        </button>
-      </nav>
+      </div>
     </motion.header>
   );
 }

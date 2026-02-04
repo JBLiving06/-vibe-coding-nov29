@@ -2,52 +2,103 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Ambient gradient background - from v3 */
-.ambient-gradient {
-  background:
-    radial-gradient(ellipse 80% 50% at 20% 40%, rgba(13, 115, 119, 0.03) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 80% 20%, rgba(217, 119, 6, 0.02) 0%, transparent 50%),
-    radial-gradient(ellipse 40% 60% at 50% 80%, rgba(13, 115, 119, 0.02) 0%, transparent 50%),
-    linear-gradient(180deg, #faf9f7 0%, #f5f3ef 100%);
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-warm-50 text-warm-800;
+    font-feature-settings: "cv11", "ss01";
+  }
+}
+
+@layer components {
+  /* Glass morphism cards - key v3 visual element */
+  .glass {
+    @apply bg-white/70 backdrop-blur-sm border border-warm-200/50;
+  }
+
+  .glass-hover {
+    @apply hover:bg-white/90 hover:border-warm-300/50 transition-all duration-300;
+  }
+
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-md border border-warm-200/60 rounded-2xl shadow-sm;
+    @apply hover:bg-white/95 hover:shadow-lg hover:border-warm-300/70;
+    @apply transition-all duration-300;
+  }
+
+  /* Premium glow card - for Infrastructure section */
+  .glow-card {
+    @apply relative overflow-hidden;
+    background: linear-gradient(135deg, rgba(13, 148, 136, 0.05) 0%, rgba(217, 119, 6, 0.03) 100%);
+  }
+
+  .glow-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 2px;
+    background: linear-gradient(135deg, rgba(13, 148, 136, 0.4), rgba(217, 119, 6, 0.3), rgba(13, 148, 136, 0.4));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: glow-rotate 4s linear infinite;
+  }
+
+  @keyframes glow-rotate {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .demo-banner {
+    @apply bg-warm-100 text-warm-500 text-xs font-medium px-3 py-1 rounded-full;
+  }
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f5f5f5;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d4d4d4;
-  border-radius: 4px;
+  background: theme('colors.warm.300');
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: theme('colors.warm.400');
 }
 
-/* Signal state colors */
-.signal-state-rising {
-  @apply bg-signal-rising-bg text-signal-rising;
+/* Selection */
+::selection {
+  background: theme('colors.accent.primary');
+  color: white;
 }
 
-.signal-state-stable {
-  @apply bg-signal-stable-bg text-signal-stable;
+/* Focus styles */
+*:focus-visible {
+  @apply outline-none ring-2 ring-accent-primary/30 ring-offset-2 ring-offset-warm-50;
 }
 
-.signal-state-watch {
-  @apply bg-signal-watch-bg text-signal-watch;
+/* Ambient background gradient - static version */
+.ambient-gradient {
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(13, 148, 136, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 80%, rgba(217, 119, 6, 0.03) 0%, transparent 50%);
 }
 
-.signal-state-critical {
-  @apply bg-signal-critical-bg text-signal-critical;
-}
-
-/* Priority card hyperscaler bar animation */
+/* Hyperscaler bar with shimmer */
 .hyperscaler-bar {
   background: linear-gradient(180deg, #d97706 0%, #f59e0b 100%);
   position: relative;
@@ -57,30 +108,22 @@
 .hyperscaler-bar::after {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 50%, rgba(255,255,255,0.1) 100%);
-  animation: shimmer 3s ease-in-out infinite;
+  top: -100%;
+  left: -100%;
+  right: -100%;
+  bottom: -100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,0.3) 50%,
+    transparent 100%
+  );
+  animation: shimmer-slide 3s ease-in-out infinite;
 }
 
-@keyframes shimmer {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
-}
-
-/* Modal backdrop blur */
-.modal-backdrop {
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-}
-
-/* Constellation connection lines */
-.constellation-line {
-  stroke: rgba(13, 115, 119, 0.2);
-  stroke-width: 1;
-  stroke-dasharray: 4 4;
+@keyframes shimmer-slide {
+  0% { transform: translateX(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) rotate(45deg); }
 }
 
 /* Demo banner pulse */
@@ -89,44 +132,64 @@
 }
 
 @keyframes demoPulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.1); }
 }
 
-/* Card hover lift effect */
-.card-hover {
-  transition: all 0.2s ease;
+/* Progress track glow effect */
+.track-glow {
+  box-shadow: 0 0 20px rgba(13, 148, 136, 0.3);
 }
 
-.card-hover:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+/* Node pulse effect */
+.node-pulse {
+  animation: nodePulse 2s ease-in-out infinite;
 }
 
-/* Typography utilities */
-.text-display {
-  font-family: 'Fraunces', Georgia, serif;
+@keyframes nodePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(13, 148, 136, 0.4); }
+  50% { box-shadow: 0 0 0 10px rgba(13, 148, 136, 0); }
 }
 
-.text-body {
-  font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+/* Breathing animation for cards */
+.breathe {
+  animation: breathe 4s ease-in-out infinite;
 }
 
-.text-mono {
-  font-family: 'IBM Plex Mono', monospace;
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.01); }
 }
 
-/* Focus states */
-button:focus-visible,
-a:focus-visible {
-  outline: 2px solid #0d7377;
-  outline-offset: 2px;
+/* Connection line animation */
+.connection-line {
+  stroke-dasharray: 8 4;
+  animation: dash 20s linear infinite;
+}
+
+@keyframes dash {
+  to { stroke-dashoffset: -100; }
+}
+
+/* Modal backdrop */
+.modal-backdrop {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Floating blob base styles */
+.floating-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
 }
 
 /* Print styles */
 @media print {
   .demo-banner,
-  .no-print {
+  .no-print,
+  .floating-blob {
     display: none !important;
   }
 }

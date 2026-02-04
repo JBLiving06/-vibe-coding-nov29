@@ -1,6 +1,12 @@
 // Signal states matching v4 spec
 export type SignalState = 'rising' | 'stable' | 'watch' | 'critical';
 
+// Trend direction for visual display
+export type TrendDirection = 'up' | 'down' | 'stable';
+
+// Status for visual indicators
+export type PriorityStatus = 'healthy' | 'attention' | 'alert';
+
 // Signal family from the framework
 export interface Signal {
   id: string;
@@ -18,9 +24,15 @@ export interface Signal {
 export interface Priority {
   id: number;
   number: string;
+  name: string; // Display name for cards (same as title)
   title: string; // MUST match Gates language exactly
   description: string;
   signalState: string;
+  // Visual properties
+  status: PriorityStatus;
+  trend: TrendDirection;
+  hyperscalerRelevance: boolean;
+  // Metrics
   metrics: {
     label: string;
     value: string;

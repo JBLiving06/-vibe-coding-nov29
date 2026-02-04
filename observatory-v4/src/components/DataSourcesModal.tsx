@@ -9,58 +9,59 @@ interface DataSourcesModalProps {
 export default function DataSourcesModal({ onClose }: DataSourcesModalProps) {
   return (
     <motion.div
-      className="fixed inset-0 bg-ink-900/50 modal-backdrop flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-warm-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
     >
       <motion.div
-        className="bg-paper rounded-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl"
+        className="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl"
         initial={{ scale: 0.95, y: 20 }}
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.95, y: 20 }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="p-6 border-b border-ink-200 flex items-start justify-between sticky top-0 bg-paper z-10">
+        <div className="p-6 border-b border-warm-200 flex items-start justify-between sticky top-0 bg-white z-10 rounded-t-2xl">
           <div>
-            <h2 className="font-display text-2xl font-semibold text-ink-900 mb-1">
+            <h2 className="font-display text-2xl font-semibold text-warm-800 mb-1">
               Data Architecture
             </h2>
-            <p className="text-sm text-ink-600">
+            <p className="text-sm text-warm-600">
               How the Observatory synthesizes market intelligence
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-ink-100 rounded transition-colors"
+            className="p-2 hover:bg-warm-100 rounded-lg transition-colors"
           >
-            <X className="w-6 h-6 text-ink-400" />
+            <X className="w-5 h-5 text-warm-500" />
           </button>
         </div>
 
         {/* Content */}
         <div className="p-6">
-          <p className="text-ink-700 leading-relaxed mb-8">
+          <p className="text-warm-700 leading-relaxed mb-8">
             The Observatory integrates multiple sensing channels into unified signal families.
             This multi-source architecture ensures signals are triangulated across practitioner
             experience, institutional behavior, capital movements, and policy developments.
           </p>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             {dataSources.map((source, index) => (
               <motion.div
                 key={source.name}
-                className="flex gap-4 p-4 bg-paper-warm rounded-lg"
+                className="flex gap-4 p-4 bg-warm-50 rounded-xl border border-warm-100
+                           hover:bg-warm-100/50 transition-colors"
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <span className="text-accent text-lg flex-shrink-0">{source.icon}</span>
+                <span className="text-accent-primary text-lg flex-shrink-0">{source.icon}</span>
                 <div>
-                  <h4 className="font-semibold text-ink-800 mb-1">{source.name}</h4>
-                  <p className="text-sm text-ink-600 leading-relaxed">
+                  <h4 className="font-semibold text-warm-800 mb-1">{source.name}</h4>
+                  <p className="text-sm text-warm-600 leading-relaxed">
                     {source.description}
                   </p>
                 </div>
@@ -68,7 +69,7 @@ export default function DataSourcesModal({ onClose }: DataSourcesModalProps) {
             ))}
           </div>
 
-          <div className="mt-8 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <div className="mt-8 p-4 bg-amber-50 border border-amber-200 rounded-xl">
             <p className="text-sm text-amber-800 italic">
               In this demonstration, Practitioner Voice is the only live data channel.
               Production deployment would integrate all sensing channels into real-time signal synthesis.

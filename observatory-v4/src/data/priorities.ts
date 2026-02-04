@@ -39,9 +39,13 @@ export const priorities: Priority[] = [
   {
     id: 1,
     number: 'Priority 1',
+    name: 'Full-Stack Core Instruction & Tutoring',
     title: 'Full-Stack Core Instruction & Tutoring',
     description: 'AI-enabled instruction, integrated tutoring, and adaptive assessment creating personalized, feedback-driven learning for K-12 acceleration.',
     signalState: '↑ Rising',
+    status: 'healthy',
+    trend: 'up',
+    hyperscalerRelevance: true,
     metrics: [
       { label: 'Signal State', value: '↑ Rising' },
       { label: 'Students at Scale', value: '7.4M' },
@@ -152,9 +156,13 @@ export const priorities: Priority[] = [
   {
     id: 2,
     number: 'Priority 2',
+    name: 'AI-Enabled Gateway Math Courses',
     title: 'AI-Enabled Gateway Math Courses',
     description: 'Courseware that transforms course design, elevates instruction, and personalizes student support for postsecondary math success.',
     signalState: '→ Emerging',
+    status: 'attention',
+    trend: 'stable',
+    hyperscalerRelevance: true,
     metrics: [
       { label: 'Signal State', value: '→ Emerging' },
       { label: 'Students Impacted', value: '355K' },
@@ -265,9 +273,13 @@ export const priorities: Priority[] = [
   {
     id: 3,
     number: 'Priority 3',
+    name: 'AI-Enabled Personalized Advising',
     title: 'AI-Enabled Personalized Advising',
     description: 'Solutions integrating advising tech, data systems, and human-led models to improve FAFSA completion, enrollment, and credential completion.',
     signalState: '↑ Accelerating',
+    status: 'healthy',
+    trend: 'up',
+    hyperscalerRelevance: true,
     metrics: [
       { label: 'Signal State', value: '↑ Accelerating' },
       { label: 'Reached with LLM', value: '8.6M' },
@@ -378,9 +390,13 @@ export const priorities: Priority[] = [
   {
     id: 4,
     number: 'Priority 4',
+    name: 'AI-Enabled Learning Mobility',
     title: 'AI-Enabled Learning Mobility',
     description: 'Credit mapping and transfer tools helping institutions evaluate, align, and apply credits efficiently across programs and systems.',
     signalState: '→ Nascent',
+    status: 'alert',
+    trend: 'stable',
+    hyperscalerRelevance: false,
     metrics: [
       { label: 'Signal State', value: '→ Nascent' },
       { label: 'Learners Impacted', value: '1.6M' },
