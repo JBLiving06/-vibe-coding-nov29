@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-warm-50 text-warm-800;
+    font-feature-settings: "cv11", "ss01";
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/70 backdrop-blur-sm border border-warm-200/50;
+  }
+
+  .glass-hover {
+    @apply hover:bg-white/90 hover:border-warm-300/50 transition-all duration-300;
+  }
+
+  .demo-banner {
+    @apply bg-warm-100 text-warm-500 text-xs font-medium px-3 py-1 rounded-full;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: theme('colors.warm.300');
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: theme('colors.warm.400');
+}
+
+/* Selection */
+::selection {
+  background: theme('colors.accent.primary');
+  color: white;
+}
+
+/* Focus styles */
+*:focus-visible {
+  @apply outline-none ring-2 ring-accent-primary/30 ring-offset-2 ring-offset-warm-50;
+}
+
+/* Ambient background gradient */
+.ambient-gradient {
+  background: radial-gradient(ellipse at 30% 20%, rgba(13, 148, 136, 0.05) 0%, transparent 50%),
+              radial-gradient(ellipse at 70% 80%, rgba(217, 119, 6, 0.03) 0%, transparent 50%);
+}
